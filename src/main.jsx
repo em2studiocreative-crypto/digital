@@ -7,8 +7,12 @@ if ('serviceWorker' in navigator && import.meta.env.DEV) {
   navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister()))
 }
 
+if ('serviceWorker' in navigator && !import.meta.env.DEV) {
+  window.addEventListener('load', () => navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`))
+}
+
 // g2.png is the supplied visual asset for the full-screen opening background.
-const heroImage = '/g2.png'
+const heroImage = `${import.meta.env.BASE_URL}g2.png`
 
 const Icon = ({ name, size = 20, stroke = 'currentColor' }) => {
   const paths = {

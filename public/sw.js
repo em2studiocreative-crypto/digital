@@ -1,5 +1,11 @@
 const CACHE_NAME = 'undanganku-shell-v1'
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/g2.png']
+const APP_SHELL = [
+  new URL('./', self.registration.scope).toString(),
+  new URL('./index.html', self.registration.scope).toString(),
+  new URL('./manifest.webmanifest', self.registration.scope).toString(),
+  new URL('./icon.svg', self.registration.scope).toString(),
+  new URL('./g2.png', self.registration.scope).toString(),
+]
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)))
@@ -17,5 +23,5 @@ self.addEventListener('fetch', (event) => {
     const copy = response.clone()
     caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy))
     return response
-  }).catch(() => caches.match('/'))))
+  }).catch(() => caches.match(new URL('./', self.registration.scope).toString()))))
 })

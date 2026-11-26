@@ -2,8 +2,8 @@
   "name": "UndanganKu — Undangan Pernikahan Digital",
   "short_name": "UndanganKu",
   "description": "Buat undangan pernikahan digital yang elegan dan mudah dibagikan.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f7f4eb",
@@ -11,6 +11,6 @@
   "lang": "id-ID",
   "categories": ["lifestyle", "productivity"],
   "icons": [
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
 }
