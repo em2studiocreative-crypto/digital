@@ -272,6 +272,7 @@ function AuthScreen({ mode, setMode, username, setUsername, password, setPasswor
   const renderForm = (formMode) => {
     const registering = formMode === 'register'
     return <form className="auth-form" onSubmit={(event) => onSubmit(event, formMode)}>
+      <div className="auth-form-brand"><img src={appIcon} alt="" /><span>Undangan<span>Ku</span></span></div>
       <h1>{registering ? 'Daftar' : 'Masuk'}</h1>
       <div className="auth-input-wrap">
         <input id={`${formMode}-username`} type="text" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Nama ID" aria-label="Nama ID" minLength={3} maxLength={20} required />
