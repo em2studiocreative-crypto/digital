@@ -17,6 +17,7 @@ if ('serviceWorker' in navigator && !import.meta.env.DEV) {
 
 const heroImage = `${import.meta.env.BASE_URL}hero-couple.webp`
 const heartDividerImage = `${import.meta.env.BASE_URL}heart-divider.png`
+const appIcon = `${import.meta.env.BASE_URL}icon-192.png`
 
 const Icon = ({ name, size = 20, stroke = 'currentColor' }) => {
   const paths = {
@@ -118,7 +119,7 @@ function Welcome({ onboarding, setOnboarding, onStart }) {
     { eyebrow: 'Satu link untuk semua tamu', title: 'Bagikan dengan Elegan', body: 'Terbitkan undangan dengan link profesional yang mudah dikirim lewat WhatsApp.', button: 'Mulai Sekarang' },
   ]
   const slide = slides[onboarding]
-  return <section className="welcome" style={{ backgroundImage: `linear-gradient(180deg, rgba(18,32,25,.04) 20%, rgba(18,28,21,.3) 50%, rgba(18,28,21,.9) 100%), radial-gradient(ellipse at 50% 78%, rgba(224,183,103,.2), transparent 58%), url("${heroImage}")` }}>
+  return <section className="welcome" style={{ backgroundImage: `linear-gradient(180deg, rgba(18,32,25,.72) 0%, rgba(18,32,25,.4) 22%, rgba(18,28,21,.3) 50%, rgba(18,28,21,.9) 100%), radial-gradient(ellipse at 50% 78%, rgba(224,183,103,.2), transparent 58%), url("${heroImage}")` }}>
     <div className="welcome-snow" aria-hidden="true">
       {snowflakes.map((flake) => <span
         className="snowflake"
@@ -136,7 +137,7 @@ function Welcome({ onboarding, setOnboarding, onStart }) {
         }}
       />)}
     </div>
-    <div className="welcome-top"><span className="brand-mark">Undangan<span>Ku</span></span></div>
+    <div className="welcome-top"><div className="welcome-brand"><span className="welcome-logo-frame"><img src={appIcon} alt="" /></span><span className="brand-mark">Undangan<span>Ku</span></span></div></div>
     <div className="welcome-content">
       <div className="love-divider love-divider-top" aria-hidden="true">
         <span style={{ '--heart-divider-image': `url("${heartDividerImage}")` }} />
@@ -149,7 +150,7 @@ function Welcome({ onboarding, setOnboarding, onStart }) {
         </svg>
       </div>
       <div className="pager" aria-label={`Slide ${onboarding + 1} dari 3`}>{slides.map((_, index) => <button key={index} aria-label={`Buka slide ${index + 1}`} className={index === onboarding ? 'active' : ''} onClick={() => setOnboarding(index)} />)}</div>
-      <button className="primary-button glass-button" onClick={onboarding === 2 || onboarding === 0 ? onStart : () => setOnboarding(onboarding + 1)}>{slide.button}<Icon name="arrow" size={18} /></button>
+      <button className="primary-button glass-button" onClick={onboarding === 2 || onboarding === 0 ? onStart : () => setOnboarding(onboarding + 1)}><span>{slide.button}</span><Icon name="arrow" size={18} /></button>
     </div>
   </section>
 }

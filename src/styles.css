@@ -16,6 +16,11 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(184, 147, 91
 @keyframes snow-glow { 0%, 100% { box-shadow: 0 0 2px 0 rgba(255, 255, 255, .25); } 50% { box-shadow: 0 0 var(--glow-size) var(--glow-spread) rgba(255, 255, 255, .9); } }
 .welcome-top, .topbar, .page-header, .section-heading, .draft-card, .mini-feature, .link-card { display: flex; align-items: center; justify-content: space-between; }
 .welcome-top, .welcome-content { position: relative; z-index: 1; }
+.welcome-brand { display: flex; align-items: center; gap: 9px; }
+.welcome-logo-frame { width: 38px; height: 38px; display: block; position: relative; overflow: hidden; border: 1px solid #d5ae59; border-radius: 10px; box-shadow: 0 0 10px rgba(213, 174, 89, .22), inset 0 0 5px rgba(255, 232, 173, .16); }
+.welcome-logo-frame::after { content: ''; position: absolute; inset: -35% auto -35% -65%; width: 48%; background: linear-gradient(105deg, transparent, rgba(255, 242, 197, .72), transparent); transform: skewX(-18deg); animation: logo-shimmer 4.5s ease-in-out infinite; pointer-events: none; }
+.welcome-logo-frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
+@keyframes logo-shimmer { 0%, 15% { left: -65%; } 55%, 100% { left: 125%; } }
 .brand-mark, .mini-logo { font-family: 'Playfair Display', serif; font-size: 24px; letter-spacing: -.6px; color: #fff; }
 .brand-mark span, .mini-logo span { color: #d5ba85; }
 .icon-button { width: 44px; height: 44px; border: 0; background: transparent; color: var(--ink); display: inline-grid; place-items: center; border-radius: 50%; transition: background .2s ease, transform .2s ease; }
@@ -51,8 +56,11 @@ h1, h2 { font-family: 'Playfair Display', serif; font-weight: 500; letter-spacin
 .love-divider-bottom::before, .love-divider-bottom::after { width: clamp(68px, 20vw, 120px); }
 .love-divider-bottom svg { width: 14px; height: 13px; }
 .welcome .pager { justify-content: center; }
-.welcome .glass-button { position: relative; width: min(100%, 360px); min-width: 0; min-height: clamp(56px, 8vh, 68px); padding: 0 clamp(38px, 10vw, 58px); border: 0; border-radius: 999px; background: linear-gradient(110deg, #f1d38f, #dfb966); box-shadow: 0 12px 28px rgba(24, 28, 17, .24); font-family: 'Playfair Display', serif; font-size: clamp(18px, 5.3vw, 26px); font-weight: 500; letter-spacing: -.3px; white-space: nowrap; flex-shrink: 0; }
+.welcome .glass-button { position: relative; overflow: hidden; width: min(100%, 360px); min-width: 0; min-height: clamp(56px, 8vh, 68px); padding: 0 clamp(38px, 10vw, 58px); border: 0; border-radius: 999px; background: linear-gradient(110deg, #f1d38f, #dfb966); box-shadow: 0 12px 28px rgba(24, 28, 17, .24); font-family: 'Playfair Display', serif; font-size: clamp(18px, 5.3vw, 26px); font-weight: 500; letter-spacing: -.3px; white-space: nowrap; flex-shrink: 0; }
+.welcome .glass-button::before { content: ''; position: absolute; z-index: 0; inset: -35% auto -35% -35%; width: 24%; background: linear-gradient(105deg, transparent, rgba(255, 250, 225, .72), transparent); transform: skewX(-18deg); animation: button-shimmer 5s ease-in-out infinite; pointer-events: none; }
+.welcome .glass-button > span, .welcome .glass-button svg { position: relative; z-index: 1; }
 .welcome .glass-button svg { position: absolute; right: clamp(13px, 5vw, 27px); width: clamp(19px, 6vw, 24px); height: clamp(19px, 6vw, 24px); }
+@keyframes button-shimmer { 0%, 15% { left: -35%; } 55%, 100% { left: 120%; } }
 .welcome .glass-button:hover { box-shadow: 0 15px 32px rgba(24, 28, 17, .3); }
 .welcome .glass-button:active { transform: translateY(1px) scale(.99); }
 .full { width: 100%; }
