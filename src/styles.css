@@ -44,7 +44,7 @@ h1, h2 { font-family: 'Playfair Display', serif; font-weight: 500; letter-spacin
 .welcome p { max-width: 350px; margin: 0 auto 22px; color: rgba(255,255,255,.88); font-family: 'Playfair Display', serif; font-size: clamp(16px, 4.7vw, 20px); font-style: italic; line-height: 1.45; text-wrap: balance; }
 .love-divider { display: flex; align-items: center; justify-content: center; gap: 8px; color: #e4c47d; }
 .love-divider::before, .love-divider::after { content: ''; width: clamp(58px, 16vw, 102px); height: 1px; background: currentColor; }
-.love-divider-top { width: 100%; margin: 0 auto 4px; transform: translateY(18px); }
+.love-divider-top { width: 100%; margin: 0 auto 4px; transform: translateY(22px); }
 .love-divider-top::before, .love-divider-top::after { display: none; }
 .love-divider-top span { display: block; width: min(76%, 290px); aspect-ratio: 3 / 1; margin: 0 auto; background: linear-gradient(110deg, #f1d38f, #dfb966); -webkit-mask: var(--heart-divider-image) center / contain no-repeat; mask: var(--heart-divider-image) center / contain no-repeat; }
 .love-divider-bottom { margin: 0 auto 16px; }
