@@ -142,11 +142,25 @@ function App() {
           options: { data: { username: id } },
         })
         if (error) {
-          if (error.message.toLowerCase().includes('already') || error.message.toLowerCase().includes('duplicate')) {
+          const errorMessage = error.message.toLowerCase()
+          const errorCode = error.code || error.status
+          console.error('Pendaftaran gagal:', { code: errorCode, message: error.message })
+          if (errorMessage.includes('already') || errorMessage.includes('duplicate')) {
             setAuthMessage('Nama ID sudah digunakan. Silakan pilih Nama ID lain.')
+          } else if (errorCode === 'signup_disabled' || errorMessage.includes('signups not allowed')) {
+            setAuthMessage('Pendaftaran dinonaktifkan di Supabase. Aktifkan pendaftaran pengguna pada pengaturan Authentication.')
+          } else if (errorCode === 'email_address_invalid' || errorMessage.includes('invalid email')) {
+            setAuthMessage('Supabase menolak alamat akun internal. Periksa kebijakan provider Email dan domain yang diizinkan.')
+          } else if (errorCode === 'email_provider_disabled') {
+            setAuthMessage('Provider Email belum aktif di Supabase Authentication.')
+          } else if (errorCode === 'weak_password' || errorMessage.includes('password should be')) {
+            setAuthMessage('Kata sandi tidak memenuhi kebijakan keamanan Supabase. Gunakan kata sandi yang lebih kuat.')
+          } else if (errorCode === 'over_email_send_rate_limit' || errorCode === 'rate_limit_exceeded') {
+            setAuthMessage('Batas pendaftaran sementara tercapai. Tunggu beberapa saat, lalu coba lagi.')
+          } else if (errorMessage.includes('database error saving new user')) {
+            setAuthMessage('Supabase gagal membuat profil pengguna. Pastikan migrasi username sudah dijalankan dan trigger on_auth_user_created terpasang.')
           } else {
-            console.error('Pendaftaran gagal:', error.message)
-            setAuthMessage('Pendaftaran belum berhasil. Periksa koneksi atau konfigurasi Supabase, lalu coba lagi.')
+            setAuthMessage(`Pendaftaran ditolak Supabase${errorCode ? ` (${errorCode})` : ''}. Periksa Authentication → Logs di Supabase.`)
           }
           return
         }

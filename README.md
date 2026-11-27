@@ -26,7 +26,7 @@ Password dan sesi ditangani Supabase Auth, bukan disimpan di aplikasi. Nama ID d
 ## Mengaktifkan autentikasi Nama ID
 
 1. Isi `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY` pada `.env.local` dari Supabase Dashboard → Project Settings → API. Frontend hanya memakai anon/publishable key.
-2. Jalankan SQL pada `supabase/migrations/202611270001_username_auth.sql` di Supabase SQL Editor untuk menambahkan kolom dan indeks Nama ID serta menyimpan ID pada profil baru.
+2. Jalankan SQL pada `supabase/migrations/202611270001_username_auth.sql` di Supabase SQL Editor untuk menambahkan kolom dan indeks Nama ID serta memasang trigger yang membuat profil untuk setiap akun baru.
 3. Di Supabase Dashboard → Authentication → Providers → Email, nonaktifkan **Confirm email**. Aplikasi menggunakan alamat internal `.invalid`, jadi email konfirmasi/pemulihan tidak dapat diterima.
 4. Pastikan kebijakan password Supabase minimal 8 karakter. Untuk pendaftaran publik, aktifkan CAPTCHA/rate limit Auth di pengaturan Supabase.
 5. Untuk GitHub Pages, simpan kedua nilai sebagai **repository secrets** bernama persis `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY` (bukan sebagai Supabase secret). Pastikan **Settings → Pages → Build and deployment → Source** menggunakan **GitHub Actions**. Setelah menambahkan atau mengubah secrets, buka **Actions → Deploy UndanganKu to GitHub Pages → Run workflow** pada branch `main`; tunggu job build dan deploy sukses. Workflow memvalidasi kedua secrets sebelum build. Untuk host lain, atur keduanya pada environment build host tersebut. Vite menyematkan variabel `VITE_*` ke hasil build, jadi build dan deploy ulang setelah perubahan konfigurasi.
