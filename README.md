@@ -29,7 +29,7 @@ Password dan sesi ditangani Supabase Auth, bukan disimpan di aplikasi. Nama ID d
 2. Jalankan SQL pada `supabase/migrations/202611270001_username_auth.sql` di Supabase SQL Editor untuk menambahkan kolom dan indeks Nama ID serta menyimpan ID pada profil baru.
 3. Di Supabase Dashboard → Authentication → Providers → Email, nonaktifkan **Confirm email**. Aplikasi menggunakan alamat internal `.invalid`, jadi email konfirmasi/pemulihan tidak dapat diterima.
 4. Pastikan kebijakan password Supabase minimal 8 karakter. Untuk pendaftaran publik, aktifkan CAPTCHA/rate limit Auth di pengaturan Supabase.
-5. Jalankan `npm run build`, lalu deploy folder `dist` ke host HTTPS.
+5. Jalankan `npm run build`, lalu deploy folder `dist` ke host HTTPS. Vite menyematkan variabel `VITE_*` ke hasil build, jadi atur kedua variabel tersebut pada environment build di penyedia hosting sebelum build dijalankan. Mengubah environment setelah build saja tidak cukup; build dan deploy ulang agar aplikasi memakai konfigurasi baru.
 
 Untuk basis data baru, `schema.sql` sudah menyertakan kolom dan indeks tersebut. Jangan pernah menaruh `service_role` key di frontend.
 
@@ -38,7 +38,7 @@ OTP, pemulihan akun otomatis, payment gateway/Virtual Account, dashboard admin, 
 ## PWA
 
 PWA memakai `public/manifest.webmanifest`, `public/sw.js`, dan icon `public/icon.svg`.
-Service worker akan aktif saat aplikasi dijalankan melalui `localhost` atau HTTPS. Pada browser Android, gunakan menu **Install app** atau **Add to Home screen**.
+Service worker akan aktif saat aplikasi dijalankan melalui `localhost` atau HTTPS. Versi cache shell dinaikkan saat ada perubahan aplikasi agar instalasi lama mengambil asset terbaru. Pada browser Android, gunakan menu **Install app** atau **Add to Home screen**.
 
 ## Supabase environment
 

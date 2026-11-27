@@ -1,4 +1,4 @@
-const CACHE_NAME = 'undanganku-shell-v6'
+const CACHE_NAME = 'undanganku-shell-v7'
 const APP_SHELL = [
   new URL('./', self.registration.scope).toString(),
   new URL('./index.html', self.registration.scope).toString(),

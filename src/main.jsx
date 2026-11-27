@@ -127,7 +127,7 @@ function App() {
       return
     }
     if (!supabase) {
-      setAuthMessage('Autentikasi belum dikonfigurasi. Isi URL dan anon key Supabase di .env.local.')
+      setAuthMessage('Konfigurasi Supabase belum tersedia pada aplikasi ini. Atur VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY, lalu build dan deploy ulang.')
       return
     }
 
