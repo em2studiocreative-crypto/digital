@@ -23,6 +23,8 @@ const appIcon = `${import.meta.env.BASE_URL}icon-192.png`
 const Icon = ({ name, size = 20, stroke = 'currentColor', className = '' }) => {
   const paths = {
     arrow: <><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></>,
+    arrowLeft: <><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></>,
+    arrowDown: <><path d="M12 5v14"/><path d="m18 13-6 6-6-6"/></>,
     back: <><path d="m15 18-6-6 6-6"/></>,
     check: <><path d="m5 12 4 4L19 6"/></>,
     home: <><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M9 21v-7h6v7"/></>,
@@ -242,7 +244,7 @@ function App() {
     <main className={`app-shell ${screen === 'welcome' ? 'welcome-app-shell' : ''} ${screen === 'login' ? 'auth-app-shell' : ''} ${screen === 'home' ? 'home-app-shell' : ''}`}>
       {screen === 'welcome' && <Welcome onboarding={onboarding} setOnboarding={setOnboarding} onStart={startApp} />}
       {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} busy={authBusy} onSubmit={submitAuth} />}
-      {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpenTemplates={() => go('templates')} onOpen={setScreen} />}
+      {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpen={setScreen} />}
       {screen === 'templates' && <TemplateGallery onBack={() => go('home')} selected={selectedTemplate} setSelected={setSelectedTemplate} onUse={() => go('editor')} />}
       {screen === 'drafts' && <DraftsPage drafts={drafts} onBack={() => go('home')} onCreate={createDraft} onOpenDraft={openDraft} />}
       {screen === 'profile' && <ProfilePage username={currentUser} draftCount={drafts.length} onBack={() => go('home')} onLogout={logout} />}
@@ -366,7 +368,7 @@ function AuthScreen({ mode, setMode, username, setUsername, password, setPasswor
 
 function Header({ title, onBack, action }) { return <header className="page-header"><button className="icon-button" onClick={onBack} aria-label="Kembali"><Icon name="back" /></button><h2>{title}</h2>{action || <span className="header-spacer" />}</header> }
 
-function Home({ drafts, activeDraft, username, onCreate, onOpenTemplates, onOpen }) {
+function Home({ drafts, activeDraft, username, onCreate, onOpen }) {
   const displayName = username || 'Kamu'
   return <section className="plain-screen home-screen">
     <header className="home-topbar">
@@ -385,22 +387,22 @@ function Home({ drafts, activeDraft, username, onCreate, onOpenTemplates, onOpen
         <p className="eyebrow">CARA KERJANYA</p>
         <h2>Dari ide hingga siap dibagikan.</h2>
       </header>
-      <div className="home-flow-steps">
-        <div className="home-flow-step"><span className="home-flow-marker"><small>01</small><span className="home-flow-icon"><Icon name="grid" size={17} /></span></span><strong>Pilih desain</strong><small>Temukan gayamu</small></div>
-        <Icon className="home-flow-arrow" name="arrow" size={15} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>02</small><span className="home-flow-icon"><Icon name="file" size={17} /></span></span><strong>Isi data</strong><small>Nama &amp; acara</small></div>
-        <Icon className="home-flow-arrow" name="arrow" size={15} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>03</small><span className="home-flow-icon"><Icon name="palette" size={17} /></span></span><strong>Atur warna</strong><small>Pilih nuansa</small></div>
-        <Icon className="home-flow-arrow" name="arrow" size={15} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>04</small><span className="home-flow-icon"><Icon name="eye" size={17} /></span></span><strong>Pratinjau</strong><small>Cek hasilnya</small></div>
-        <Icon className="home-flow-arrow" name="arrow" size={15} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>05</small><span className="home-flow-icon"><Icon name="lock" size={17} /></span></span><strong>Aktivasi</strong><small>Aktifkan undangan</small></div>
-        <Icon className="home-flow-arrow" name="arrow" size={15} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>06</small><span className="home-flow-icon"><Icon name="share" size={17} /></span></span><strong>Bagikan</strong><small>Kirim ke tamu</small></div>
+      <div className="home-flow-row">
+        <div className="home-flow-step"><span className="home-flow-marker"><small>01</small><span className="home-flow-icon"><Icon name="grid" size={21} /></span></span><strong>Pilih desain</strong><small>Temukan gayamu</small></div>
+        <Icon className="home-flow-arrow" name="arrow" size={18} />
+        <div className="home-flow-step"><span className="home-flow-marker"><small>02</small><span className="home-flow-icon"><Icon name="file" size={21} /></span></span><strong>Isi data</strong><small>Nama &amp; acara</small></div>
+        <Icon className="home-flow-arrow" name="arrow" size={18} />
+        <div className="home-flow-step"><span className="home-flow-marker"><small>03</small><span className="home-flow-icon"><Icon name="palette" size={21} /></span></span><strong>Atur warna</strong><small>Pilih nuansa</small></div>
+      </div>
+      <Icon className="home-flow-turn" name="arrowDown" size={17} />
+      <div className="home-flow-row home-flow-row-reverse">
+        <div className="home-flow-step"><span className="home-flow-marker"><small>06</small><span className="home-flow-icon"><Icon name="share" size={21} /></span></span><strong>Bagikan</strong><small>Kirim ke tamu</small></div>
+        <Icon className="home-flow-arrow" name="arrowLeft" size={18} />
+        <div className="home-flow-step"><span className="home-flow-marker"><small>05</small><span className="home-flow-icon"><Icon name="lock" size={21} /></span></span><strong>Aktivasi</strong><small>Aktifkan undangan</small></div>
+        <Icon className="home-flow-arrow" name="arrowLeft" size={18} />
+        <div className="home-flow-step"><span className="home-flow-marker"><small>04</small><span className="home-flow-icon"><Icon name="eye" size={21} /></span></span><strong>Pratinjau</strong><small>Cek hasilnya</small></div>
       </div>
     </section>
-    <div className="section-heading home-section-heading"><div><p className="eyebrow">Simple, full color, dan lainnya</p><h2>Pilih konsep desain</h2></div><button className="text-button" onClick={onOpenTemplates}>Lihat semua <Icon name="arrow" size={15} /></button></div>
-    <div className="template-strip">{templates.slice(0, 3).map((item) => <TemplateCard key={item.id} item={item} compact onClick={onOpenTemplates} />)}</div>
     <div className="section-heading draft-heading home-section-heading"><div><p className="eyebrow">Disimpan untuk nanti</p><h2>Rancanganmu</h2></div><span className="count-pill">{drafts.length}/2</span></div>
     {activeDraft ? <div className="draft-card"><TemplateArt item={activeDraft.template} colorIndex={activeDraft.color || 0} className="draft-thumb" /><div className="draft-copy"><h3>{activeDraft.groom || 'Rancangan Undangan' } <span>&amp;</span> {activeDraft.bride || 'Pasangan'}</h3><p>{activeDraft.template?.title || 'Template pilihan'} · Tema {activeDraft.color + 1}</p><button className="outline-button" onClick={() => onOpen('preview')}>Lihat pratinjau</button></div></div> : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada rancangan</h3><p>Mulai dari template yang paling mewakili kisah kalian.</p><button className="primary-button" onClick={onCreate}>Buat rancangan pertama <Icon name="arrow" size={17} /></button></div>}
   </section>
