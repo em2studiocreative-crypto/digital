@@ -285,7 +285,7 @@ function AuthScreen({ mode, setMode, username, setUsername, password, setPasswor
       </div>
       {registering && <p className="auth-hint">Nama ID unik · kata sandi minimal 8 karakter</p>}
       {message && mode === formMode && <p className="auth-message" role="alert">{message}</p>}
-      <button className="auth-submit" type="submit" disabled={busy}>{busy ? 'Menghubungkan…' : registering ? 'Buat akun' : 'Masuk'}{!busy && <Icon name="arrow" size={18} />}</button>
+      <button className="auth-submit" type="submit" disabled={busy}><span>{busy ? 'Menghubungkan…' : registering ? 'Buat akun' : 'Masuk'}</span>{!busy && <Icon name="arrow" size={18} />}</button>
       <p className="auth-recovery-note">Kata sandi terlupa? Hubungi admin untuk bantuan.</p>
     </form>
   }
@@ -302,7 +302,7 @@ function AuthScreen({ mode, setMode, username, setUsername, password, setPasswor
         <div className="auth-toggle-panel panel-register">
           <h2>Halo, selamat datang!</h2>
           <p>Belum memiliki akun?</p>
-          <button className="auth-panel-button" type="button" onClick={() => switchMode('register')}>Daftar</button>
+          <button className="auth-panel-button shimmer-button" type="button" onClick={() => switchMode('register')}><span>Daftar</span></button>
         </div>
       </div>
     </div>
