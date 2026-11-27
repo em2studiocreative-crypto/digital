@@ -166,9 +166,13 @@ h1, h2 { font-family: 'Playfair Display', serif; font-weight: 500; letter-spacin
 .home-section-heading h2 { font-size: 22px; color: #263C30; }
 .home-section-heading .eyebrow { margin-bottom: 6px; font-size: 9px; letter-spacing: 1.35px; }
 .home-section-heading .text-button { color: #6f765f; }
-.home-drafts-panel { position: relative; isolation: isolate; overflow: hidden; margin-bottom: 24px; padding: 18px 18px 20px; border-radius: 8px 8px 42px 8px; background: radial-gradient(ellipse at 86% 20%, rgba(184,147,91,.2), transparent 34%), linear-gradient(135deg, #314a39, #263C30 62%, #1c2d23); color: #fff; }
+.home-drafts-panel { position: relative; isolation: isolate; overflow: hidden; margin-bottom: 24px; padding: 18px 18px 20px; border-radius: 8px 8px 8px 42px; background: radial-gradient(ellipse at 86% 20%, rgba(184,147,91,.2), transparent 34%), linear-gradient(135deg, #314a39, #263C30 62%, #1c2d23); color: #fff; }
 .home-drafts-panel::after { content: ''; position: absolute; z-index: -1; width: 130px; height: 130px; right: -58px; top: -72px; border: 1px solid rgba(228,199,141,.48); border-radius: 50%; box-shadow: 0 0 0 11px rgba(228,199,141,.07), 0 0 0 24px rgba(228,199,141,.045); pointer-events: none; }
 .home-drafts-panel::before { content: 'U'; position: absolute; z-index: -1; right: 12px; bottom: -57px; color: rgba(228,199,141,.055); font: 190px/.9 'Playfair Display', serif; pointer-events: none; }
+.home-drafts-shimmer { position: absolute; z-index: 0; top: -35%; bottom: -35%; left: -45%; width: 28%; transform: translateX(-160%) rotate(18deg); background: linear-gradient(90deg, transparent, rgba(255,255,255,.14), transparent); opacity: .35; pointer-events: none; animation: home-drafts-shimmer 8s ease-in-out infinite; }
+@keyframes home-drafts-shimmer { 0%, 62% { transform: translateX(-160%) rotate(18deg); } 100% { transform: translateX(570%) rotate(18deg); } }
+.home-drafts-panel > :not(.home-drafts-shimmer) { position: relative; z-index: 1; }
+@media (prefers-reduced-motion: reduce) { .home-drafts-shimmer { animation: none; } }
 .home-drafts-panel .home-section-heading { position: relative; z-index: 1; margin-bottom: 12px; }
 .home-drafts-panel .home-section-heading h2 { color: #fffdf8; }
 .home-drafts-panel .home-section-heading .eyebrow { color: #e4c78d; }
