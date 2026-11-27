@@ -23,6 +23,7 @@ $$;
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
+  username text,
   phone text unique,
   display_name text,
   role public.user_role not null default 'user',
@@ -30,19 +31,26 @@ create table public.profiles (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
+create unique index profiles_username_unique
+  on public.profiles (lower(username))
+  where username is not null;
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, phone, display_name)
+  insert into public.profiles (id, phone, display_name, username)
   values (
     new.id,
     new.phone,
-    coalesce(new.raw_user_meta_data ->> 'display_name', new.phone)
+    coalesce(new.raw_user_meta_data ->> 'display_name', new.raw_user_meta_data ->> 'username', new.phone),
+    nullif(lower(new.raw_user_meta_data ->> 'username'), '')
   )
-  on conflict (id) do nothing;
+  on conflict (id) do update
+  set username = coalesce(public.profiles.username, excluded.username),
+      display_name = coalesce(public.profiles.display_name, excluded.display_name);
   return new;
 end;
 $$;
@@ -54,6 +62,22 @@ create trigger on_auth_user_created
 create trigger profiles_set_updated_at
   before update on public.profiles
   for each row execute procedure public.set_updated_at();
+
+create or replace function public.prevent_profile_username_change()
+returns trigger
+language plpgsql
+as $$
+begin
+  if auth.uid() is not null and new.username is distinct from old.username then
+    raise exception 'username_immutable';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger profiles_username_immutable
+  before update on public.profiles
+  for each row execute procedure public.prevent_profile_username_change();
 
 create table public.templates (
   id uuid primary key default gen_random_uuid(),

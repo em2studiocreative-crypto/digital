@@ -9,10 +9,10 @@ npm install
 npm run dev
 ```
 
-Prototype ini menggunakan data lokal untuk simulasi alur:
+Antarmuka menggunakan data lokal untuk rancangan undangan. Akun menggunakan Supabase Auth:
 
 - onboarding
-- daftar dan login dengan Nama ID dan kata sandi (akun demo hanya tersimpan di memori selama sesi berjalan)
+- daftar dan login dengan Nama ID dan kata sandi
 - beranda
 - galeri template
 - pembuatan rancangan
@@ -21,7 +21,19 @@ Prototype ini menggunakan data lokal untuk simulasi alur:
 - status pembayaran manual
 - link undangan
 
-Autentikasi Nama ID dan kata sandi saat ini hanya simulasi di sisi klien dan bukan untuk penggunaan produksi. OTP, backend autentikasi, payment gateway/Virtual Account, dashboard admin, database, RSVP tersimpan, dan upload bukti transfer belum terhubung pada tahap ini.
+Password dan sesi ditangani Supabase Auth, bukan disimpan di aplikasi. Nama ID dipetakan ke alamat internal pada domain `.invalid` (tidak dapat menerima email); indeks unik di database mencegah duplikasi. Karena tidak ada email/nomor yang dapat diverifikasi, pemulihan password mandiri tidak tersedia. Siapkan prosedur bantuan admin sebelum membuka pendaftaran publik.
+
+## Mengaktifkan autentikasi Nama ID
+
+1. Isi `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY` pada `.env.local` dari Supabase Dashboard → Project Settings → API. Frontend hanya memakai anon/publishable key.
+2. Jalankan SQL pada `supabase/migrations/202611270001_username_auth.sql` di Supabase SQL Editor untuk menambahkan kolom dan indeks Nama ID serta menyimpan ID pada profil baru.
+3. Di Supabase Dashboard → Authentication → Providers → Email, nonaktifkan **Confirm email**. Aplikasi menggunakan alamat internal `.invalid`, jadi email konfirmasi/pemulihan tidak dapat diterima.
+4. Pastikan kebijakan password Supabase minimal 8 karakter. Untuk pendaftaran publik, aktifkan CAPTCHA/rate limit Auth di pengaturan Supabase.
+5. Jalankan `npm run build`, lalu deploy folder `dist` ke host HTTPS.
+
+Untuk basis data baru, `schema.sql` sudah menyertakan kolom dan indeks tersebut. Jangan pernah menaruh `service_role` key di frontend.
+
+OTP, pemulihan akun otomatis, payment gateway/Virtual Account, dashboard admin, RSVP tersimpan, dan upload bukti transfer belum terhubung pada tahap ini.
 
 ## PWA
 

@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
 import './overrides.css'
+import { supabase, usernameAuthEmail } from './lib/supabaseClient.js'
 
 if ('serviceWorker' in navigator && import.meta.env.DEV) {
   navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister()))
@@ -58,9 +59,9 @@ function App() {
   const [authMode, setAuthMode] = useState('login')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [demoAccounts, setDemoAccounts] = useState([])
   const [currentUser, setCurrentUser] = useState('')
   const [authMessage, setAuthMessage] = useState('')
+  const [authBusy, setAuthBusy] = useState(false)
   const [drafts, setDrafts] = useState([])
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [selectedColor, setSelectedColor] = useState(0)
@@ -72,12 +73,43 @@ function App() {
   const activeDraft = useMemo(() => drafts[0], [drafts])
   const go = (next) => setScreen(next)
 
+  useEffect(() => {
+    if (!supabase) return undefined
+
+    let active = true
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active || !session) return
+      setCurrentUser(session.user.user_metadata?.username || '')
+      setScreen('home')
+    })
+
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!active) return
+      if (error) {
+        console.error('Gagal memuat sesi autentikasi:', error.message)
+        setAuthMessage('Sesi akun tidak dapat dimuat. Silakan coba masuk kembali.')
+      } else if (data.session) {
+        setCurrentUser(data.session.user.user_metadata?.username || '')
+        setScreen('home')
+      }
+    }).catch((error) => {
+      if (!active) return
+      console.error('Gagal memuat sesi autentikasi:', error)
+      setAuthMessage('Sesi akun tidak dapat dimuat. Silakan coba masuk kembali.')
+    })
+
+    return () => {
+      active = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
   const startApp = () => {
-    setAuthMode('login')
+    setAuthMode('register')
     setAuthMessage('')
     go('login')
   }
-  const submitAuth = (event) => {
+  const submitAuth = async (event, mode = authMode) => {
     event.preventDefault()
     const id = username.trim().toLowerCase()
     if (!/^[a-z0-9._-]{3,20}$/.test(id)) {
@@ -88,23 +120,51 @@ function App() {
       setAuthMessage('Kata sandi harus terdiri dari minimal 8 karakter.')
       return
     }
-    if (authMode === 'register') {
-      if (demoAccounts.some((account) => account.username === id)) {
-        setAuthMessage('Nama ID ini sudah digunakan. Silakan pilih Nama ID lain.')
-        return
-      }
-      setDemoAccounts((accounts) => [...accounts, { username: id, password }])
-    } else {
-      const account = demoAccounts.find((item) => item.username === id && item.password === password)
-      if (!account) {
-        setAuthMessage('Nama ID atau kata sandi tidak cocok. Coba lagi atau buat akun baru.')
-        return
-      }
+    if (!supabase) {
+      setAuthMessage('Autentikasi belum dikonfigurasi. Isi URL dan anon key Supabase di .env.local.')
+      return
     }
-    setCurrentUser(id)
+
+    setAuthBusy(true)
     setAuthMessage('')
-    setPassword('')
-    go('home')
+    try {
+      const email = usernameAuthEmail(id)
+      if (mode === 'register') {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { username: id } },
+        })
+        if (error) {
+          if (error.message.toLowerCase().includes('already') || error.message.toLowerCase().includes('duplicate')) {
+            setAuthMessage('Nama ID sudah digunakan. Silakan pilih Nama ID lain.')
+          } else {
+            console.error('Pendaftaran gagal:', error.message)
+            setAuthMessage('Pendaftaran belum berhasil. Periksa koneksi atau konfigurasi Supabase, lalu coba lagi.')
+          }
+          return
+        }
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        if (mode === 'register') {
+          console.error('Akun dibuat, tetapi sesi belum dapat dimulai:', error.message)
+          setAuthMessage('Akun sudah dibuat, tetapi belum dapat masuk. Pastikan konfirmasi email dinonaktifkan di Supabase, lalu coba masuk.')
+        } else {
+          setAuthMessage('Nama ID atau kata sandi tidak cocok.')
+        }
+        return
+      }
+      setCurrentUser(data.user.user_metadata?.username || id)
+      setPassword('')
+      go('home')
+    } catch (error) {
+      console.error('Permintaan autentikasi gagal:', error)
+      setAuthMessage('Tidak dapat terhubung ke layanan akun. Periksa koneksi internet lalu coba lagi.')
+    } finally {
+      setAuthBusy(false)
+    }
   }
   const createDraft = () => {
     if (drafts.length >= 2) return
@@ -124,9 +184,9 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell ${screen === 'login' ? 'auth-app-shell' : ''}`}>
       {screen === 'welcome' && <Welcome onboarding={onboarding} setOnboarding={setOnboarding} onStart={startApp} />}
-      {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} onSubmit={submitAuth} />}
+      {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} busy={authBusy} onSubmit={submitAuth} />}
       {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpenTemplates={() => go('templates')} onOpen={setScreen} />}
       {screen === 'templates' && <TemplateGallery onBack={() => go('home')} selected={selectedTemplate} setSelected={setSelectedTemplate} onUse={() => go('editor')} />}
       {screen === 'editor' && <Editor form={form} setForm={setForm} selectedTemplate={selectedTemplate} selectedColor={selectedColor} setSelectedColor={setSelectedColor} onBack={() => go('templates')} onSave={saveDraft} />}
@@ -196,46 +256,48 @@ function Welcome({ onboarding, setOnboarding, onStart }) {
   </section>
 }
 
-function AuthScreen({ mode, setMode, username, setUsername, password, setPassword, message, onSubmit }) {
+function AuthScreen({ mode, setMode, username, setUsername, password, setPassword, message, busy, onSubmit }) {
   const [showPassword, setShowPassword] = useState(false)
   const isRegister = mode === 'register'
-  return <section className={`auth-screen ${isRegister ? 'register-mode' : ''}`}>
-    <header className="auth-hero">
-      <div className="auth-brand"><img src={appIcon} alt="" /><span>Undangan<span>Ku</span></span></div>
-      <div className="auth-hero-copy">
-        <p className="auth-kicker">Undanganmu dimulai di sini</p>
-        <h1>{isRegister ? 'Satu akun untuk cerita baru.' : 'Senang melihatmu kembali.'}</h1>
+  const switchMode = (nextMode) => {
+    setShowPassword(false)
+    setMode(nextMode)
+  }
+  const renderForm = (formMode) => {
+    const registering = formMode === 'register'
+    return <form className="auth-form" onSubmit={(event) => onSubmit(event, formMode)}>
+      <h1>{registering ? 'Daftar' : 'Masuk'}</h1>
+      <div className="auth-input-wrap">
+        <input id={`${formMode}-username`} type="text" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Nama ID" aria-label="Nama ID" minLength={3} maxLength={20} required />
+        <Icon name="user" size={18} />
       </div>
-      <div className="auth-mode-prompt">
-        <span>{isRegister ? 'Sudah punya akun?' : 'Belum punya akun?'}</span>
-        <button type="button" onClick={() => setMode(isRegister ? 'login' : 'register')}>{isRegister ? 'Masuk' : 'Daftar'}</button>
+      <div className="auth-input-wrap">
+        <input id={`${formMode}-password`} type={showPassword ? 'text' : 'password'} autoComplete={registering ? 'new-password' : 'current-password'} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Kata sandi" aria-label="Kata sandi" minLength={8} maxLength={72} required />
+        <Icon name="lock" size={18} />
+        <button className="password-visibility" type="button" aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'} onClick={() => setShowPassword((visible) => !visible)}><Icon name={showPassword ? 'eyeOff' : 'eye'} size={17} /></button>
       </div>
-      <span className="auth-orbit orbit-one" />
-      <span className="auth-orbit orbit-two" />
-    </header>
-    <div className="auth-sheet">
-      <div className="auth-heading">
-        <p className="eyebrow">{isRegister ? 'Buat akun baru' : 'Selamat datang kembali'}</p>
-        <h2>{isRegister ? 'Daftar' : 'Masuk'}</h2>
-        <p className="muted">{isRegister ? 'Buat Nama ID dan kata sandi untuk mulai merancang.' : 'Masuk untuk melanjutkan rancangan undanganmu.'}</p>
-      </div>
-      <form className="auth-form" onSubmit={onSubmit}>
-        <label className="field-label" htmlFor="account-id">Nama ID</label>
-        <div className="auth-input-wrap">
-          <Icon name="user" size={19} />
-          <input id="account-id" type="text" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="contoh: rara.senja" minLength={3} maxLength={20} required />
+      {registering && <p className="auth-hint">Nama ID unik · kata sandi minimal 8 karakter</p>}
+      {message && mode === formMode && <p className="auth-message" role="alert">{message}</p>}
+      <button className="auth-submit" type="submit" disabled={busy}>{busy ? 'Menghubungkan…' : registering ? 'Buat akun' : 'Masuk'}{!busy && <Icon name="arrow" size={18} />}</button>
+      <p className="auth-recovery-note">Kata sandi terlupa? Hubungi admin untuk bantuan.</p>
+    </form>
+  }
+  return <section className="auth-screen">
+    <div className={`auth-container ${isRegister ? '' : 'active'}`}>
+      <div className="auth-form-box register-form">{renderForm('register')}</div>
+      <div className="auth-form-box login-form">{renderForm('login')}</div>
+      <div className="auth-toggle-box">
+        <div className="auth-toggle-panel panel-login">
+          <h2>Selamat datang kembali!</h2>
+          <p>Sudah memiliki akun?</p>
+          <button className="auth-panel-button" type="button" onClick={() => switchMode('login')}>Masuk</button>
         </div>
-        {isRegister && <span className="auth-hint">3–20 karakter, gunakan huruf kecil, angka, titik, _ atau -</span>}
-        <label className="field-label" htmlFor="account-password">Kata sandi</label>
-        <div className="auth-input-wrap">
-          <Icon name="lock" size={19} />
-          <input id="account-password" type={showPassword ? 'text' : 'password'} autoComplete={isRegister ? 'new-password' : 'current-password'} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Minimal 8 karakter" minLength={8} required />
-          <button className="password-visibility" type="button" aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'} onClick={() => setShowPassword((visible) => !visible)}><Icon name={showPassword ? 'eyeOff' : 'eye'} size={19} /></button>
+        <div className="auth-toggle-panel panel-register">
+          <h2>Halo, selamat datang!</h2>
+          <p>Belum memiliki akun?</p>
+          <button className="auth-panel-button" type="button" onClick={() => switchMode('register')}>Daftar</button>
         </div>
-        {message && <p className="auth-message" role="alert">{message}</p>}
-        <button className="primary-button full auth-submit" type="submit">{isRegister ? 'Buat akun' : 'Masuk'}<Icon name="arrow" size={18} /></button>
-      </form>
-      <p className="auth-demo-note">Mode pratinjau: akun hanya tersedia selama sesi ini. Pendaftaran dan login aman memerlukan backend.</p>
+      </div>
     </div>
   </section>
 }

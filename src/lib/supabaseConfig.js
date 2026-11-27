@@ -6,3 +6,5 @@ export const supabaseConfig = {
 export const hasSupabaseConfig = Boolean(
   supabaseConfig.url && supabaseConfig.anonKey,
 )
+
+export const usernameAuthEmail = (username) => `${username}@accounts.undanganku.invalid`
