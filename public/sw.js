@@ -1,9 +1,12 @@
-const CACHE_NAME = 'undanganku-shell-v4'
+const CACHE_NAME = 'undanganku-shell-v5'
 const APP_SHELL = [
   new URL('./', self.registration.scope).toString(),
   new URL('./index.html', self.registration.scope).toString(),
   new URL('./manifest.webmanifest', self.registration.scope).toString(),
   new URL('./icon.svg', self.registration.scope).toString(),
+  new URL('./icon-180.png', self.registration.scope).toString(),
+  new URL('./icon-192.png', self.registration.scope).toString(),
+  new URL('./icon-512.png', self.registration.scope).toString(),
   new URL('./hero-couple.jpeg', self.registration.scope).toString(),
   new URL('./heart-divider.png', self.registration.scope).toString(),
 ]
