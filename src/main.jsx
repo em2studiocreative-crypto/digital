@@ -27,6 +27,7 @@ const Icon = ({ name, size = 20, stroke = 'currentColor' }) => {
     check: <><path d="m5 12 4 4L19 6"/></>,
     home: <><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M9 21v-7h6v7"/></>,
     grid: <><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></>,
+    logout: <><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></>,
     user: <><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>,
     lock: <><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></>,
     eye: <><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.5"/></>,
@@ -62,6 +63,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState('')
   const [authMessage, setAuthMessage] = useState('')
   const [authBusy, setAuthBusy] = useState(false)
+  const [logoutMessage, setLogoutMessage] = useState('')
   const [drafts, setDrafts] = useState([])
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [selectedColor, setSelectedColor] = useState(0)
@@ -111,7 +113,7 @@ function App() {
   }, [])
 
   const startApp = () => {
-    setAuthMode('register')
+    setAuthMode('login')
     setAuthMessage('')
     go('login')
   }
@@ -202,6 +204,27 @@ function App() {
     setPaymentStatus('waiting')
     go('payment')
   }
+  const logout = async () => {
+    if (!supabase) {
+      setLogoutMessage('Layanan akun belum tersedia. Tidak dapat mengakhiri sesi.')
+      return
+    }
+
+    setLogoutMessage('')
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      setCurrentUser('')
+      setPassword('')
+      setAuthMode('login')
+      setAuthMessage('')
+      setActiveNav('home')
+      go('login')
+    } catch (error) {
+      console.error('Gagal mengakhiri sesi:', error)
+      setLogoutMessage('Tidak dapat keluar dari akun. Periksa koneksi lalu coba lagi.')
+    }
+  }
 
   return (
     <main className={`app-shell ${screen === 'welcome' ? 'welcome-app-shell' : ''} ${screen === 'login' ? 'auth-app-shell' : ''}`}>
@@ -213,7 +236,10 @@ function App() {
       {screen === 'preview' && <Preview draft={activeDraft} onBack={() => go('home')} onPublish={publish} />}
       {screen === 'payment' && <Payment duration={duration} setDuration={setDuration} status={paymentStatus} onBack={() => go('home')} onSubmit={() => setPaymentStatus('waiting')} />}
       {screen === 'share' && <Share onBack={() => go('home')} />}
-      {['home', 'templates'].includes(screen) && <BottomNav active={activeNav} setActive={(item) => { setActiveNav(item); go(item === 'templates' ? 'templates' : 'home') }} />}
+      {['home', 'templates'].includes(screen) && <>
+        {logoutMessage && <p className="nav-message" role="alert">{logoutMessage}</p>}
+        <BottomNav active={activeNav} setActive={(item) => { setLogoutMessage(''); setActiveNav(item); go(item === 'templates' ? 'templates' : 'home') }} onLogout={logout} />
+      </>}
     </main>
   )
 }
@@ -355,6 +381,6 @@ function Payment({ duration, setDuration, status, onBack, onSubmit }) { const pr
 
 function Share({ onBack }) { return <section className="plain-screen centered-screen"><div className="success-mark"><Icon name="check" size={28} /></div><p className="eyebrow">Undangan aktif</p><h1>Siap dibagikan dengan elegan.</h1><p className="muted center-copy">Link undanganmu sudah siap. Bagikan secara personal melalui WhatsApp.</p><div className="link-card"><span>undanganku.id/andi-dan-sari</span><button className="icon-button small" aria-label="Salin link"><Icon name="share" size={17} /></button></div><button className="primary-button full">Bagikan ke WhatsApp <Icon name="share" size={17} /></button><button className="text-button" onClick={onBack}>Kembali ke beranda</button></section> }
 
-function BottomNav({ active, setActive }) { return <nav className="bottom-nav"><button className={active === 'home' ? 'active' : ''} onClick={() => setActive('home')}><Icon name="home" /><span>Beranda</span></button><button className={active === 'templates' ? 'active' : ''} onClick={() => setActive('templates')}><Icon name="grid" /><span>Template</span></button><button className={active === 'drafts' ? 'active' : ''} onClick={() => setActive('drafts')}><Icon name="file" /><span>Undangan</span></button><button className={active === 'profile' ? 'active' : ''} onClick={() => setActive('profile')}><Icon name="user" /><span>Profil</span></button></nav> }
+function BottomNav({ active, setActive, onLogout }) { return <nav className="bottom-nav"><button className={active === 'home' ? 'active' : ''} onClick={() => setActive('home')}><Icon name="home" /><span>Beranda</span></button><button className={active === 'templates' ? 'active' : ''} onClick={() => setActive('templates')}><Icon name="grid" /><span>Template</span></button><button className={active === 'drafts' ? 'active' : ''} onClick={() => setActive('drafts')}><Icon name="file" /><span>Undangan</span></button><button className={active === 'profile' ? 'active' : ''} onClick={() => setActive('profile')}><Icon name="user" /><span>Profil</span></button><button type="button" onClick={onLogout}><Icon name="logout" /><span>Logout</span></button></nav> }
 
 createRoot(document.getElementById('root')).render(<App />)
