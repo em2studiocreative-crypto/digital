@@ -201,6 +201,10 @@ function App() {
     go('home')
     setActiveNav('home')
   }
+  const openDraft = (draft) => {
+    setDrafts((items) => [draft, ...items.filter((item) => item.id !== draft.id)])
+    go('preview')
+  }
   const publish = () => {
     setPaymentStatus('waiting')
     go('payment')
@@ -233,13 +237,15 @@ function App() {
       {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} busy={authBusy} onSubmit={submitAuth} />}
       {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpenTemplates={() => go('templates')} onOpen={setScreen} />}
       {screen === 'templates' && <TemplateGallery onBack={() => go('home')} selected={selectedTemplate} setSelected={setSelectedTemplate} onUse={() => go('editor')} />}
+      {screen === 'drafts' && <DraftsPage drafts={drafts} onBack={() => go('home')} onCreate={createDraft} onOpenDraft={openDraft} />}
+      {screen === 'profile' && <ProfilePage username={currentUser} draftCount={drafts.length} onBack={() => go('home')} onLogout={logout} />}
       {screen === 'editor' && <Editor form={form} setForm={setForm} selectedTemplate={selectedTemplate} selectedColor={selectedColor} setSelectedColor={setSelectedColor} onBack={() => go('templates')} onSave={saveDraft} />}
       {screen === 'preview' && <Preview draft={activeDraft} onBack={() => go('home')} onPublish={publish} />}
       {screen === 'payment' && <Payment duration={duration} setDuration={setDuration} status={paymentStatus} onBack={() => go('home')} onSubmit={() => setPaymentStatus('waiting')} />}
       {screen === 'share' && <Share onBack={() => go('home')} />}
-      {['home', 'templates'].includes(screen) && <>
+      {['home', 'templates', 'drafts', 'profile'].includes(screen) && <>
         {logoutMessage && <p className="nav-message" role="alert">{logoutMessage}</p>}
-        <BottomNav active={screen === 'templates' ? 'templates' : screen === 'home' ? 'home' : activeNav} setActive={(item) => { setLogoutMessage(''); setActiveNav(item); go(item === 'templates' ? 'templates' : 'home') }} onLogout={logout} />
+        <BottomNav active={screen} setActive={(item) => { setLogoutMessage(''); setActiveNav(item); go(item) }} onLogout={logout} />
       </>}
     </main>
   )
@@ -372,6 +378,35 @@ function Home({ drafts, activeDraft, username, onCreate, onOpenTemplates, onOpen
     <div className="template-strip">{templates.slice(0, 3).map((item) => <TemplateCard key={item.id} item={item} compact onClick={onOpenTemplates} />)}</div>
     <div className="section-heading draft-heading home-section-heading"><div><p className="eyebrow">Disimpan untuk nanti</p><h2>Rancanganmu</h2></div><span className="count-pill">{drafts.length}/2</span></div>
     {activeDraft ? <div className="draft-card"><TemplateArt item={activeDraft.template} className="draft-thumb" /><div className="draft-copy"><h3>{activeDraft.groom || 'Rancangan Undangan' } <span>&amp;</span> {activeDraft.bride || 'Pasangan'}</h3><p>{activeDraft.template?.title || 'Template pilihan'} · Tema {activeDraft.color + 1}</p><button className="outline-button" onClick={() => onOpen('preview')}>Lihat pratinjau</button></div></div> : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada rancangan</h3><p>Mulai dari template yang paling mewakili kisah kalian.</p><button className="primary-button" onClick={onCreate}>Buat rancangan pertama <Icon name="arrow" size={17} /></button></div>}
+  </section>
+}
+
+function DraftsPage({ drafts, onBack, onCreate, onOpenDraft }) {
+  return <section className="plain-screen">
+    <Header title="Undangan Saya" onBack={onBack} />
+    <div className="screen-intro"><p className="eyebrow">Ruang karyamu</p><h1>Semua rancanganmu.</h1><p className="template-helper">Undangan yang kamu buat tersimpan di sini.</p></div>
+    {drafts.length ? <div className="draft-list">{drafts.map((draft) => <button className="draft-list-item" type="button" key={draft.id} onClick={() => onOpenDraft(draft)}>
+      <TemplateArt item={draft.template} className="draft-list-art" />
+      <span className="draft-list-copy"><strong>{draft.groom || 'Nama mempelai'} <i>&amp;</i> {draft.bride || 'Nama mempelai'}</strong><small>{draft.template?.title || 'Template pilihan'} · {draft.status}</small></span>
+      <Icon name="chevron" size={18} />
+    </button>)}</div> : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada undangan</h3><p>Rancangan yang kamu simpan akan muncul di sini.</p><button className="primary-button" onClick={onCreate}>Mulai buat undangan <Icon name="arrow" size={17} /></button></div>}
+  </section>
+}
+
+function ProfilePage({ username, draftCount, onBack, onLogout }) {
+  return <section className="plain-screen">
+    <Header title="Profil" onBack={onBack} />
+    <div className="profile-card">
+      <div className="profile-avatar"><Icon name="user" size={28} /></div>
+      <p className="eyebrow">Akun UndanganKu</p>
+      <h1>{username || 'Pengguna'}</h1>
+      <p className="profile-description">Ini adalah ruang pribadimu untuk mengelola rancangan undangan.</p>
+      <div className="profile-details">
+        <div><span>Nama ID</span><strong>{username || 'Belum tersedia'}</strong></div>
+        <div><span>Rancangan tersimpan</span><strong>{draftCount} dari 2</strong></div>
+      </div>
+      <button className="outline-button profile-logout" onClick={onLogout}><Icon name="logout" size={17} /> Keluar dari akun</button>
+    </div>
   </section>
 }
 
