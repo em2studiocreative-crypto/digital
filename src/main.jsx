@@ -227,7 +227,7 @@ function App() {
   }
 
   return (
-    <main className={`app-shell ${screen === 'welcome' ? 'welcome-app-shell' : ''} ${screen === 'login' ? 'auth-app-shell' : ''}`}>
+    <main className={`app-shell ${screen === 'welcome' ? 'welcome-app-shell' : ''} ${screen === 'login' ? 'auth-app-shell' : ''} ${screen === 'home' ? 'home-app-shell' : ''}`}>
       {screen === 'welcome' && <Welcome onboarding={onboarding} setOnboarding={setOnboarding} onStart={startApp} />}
       {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} busy={authBusy} onSubmit={submitAuth} />}
       {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpenTemplates={() => go('templates')} onOpen={setScreen} />}
@@ -353,12 +353,24 @@ function Header({ title, onBack, action }) { return <header className="page-head
 
 function Home({ drafts, activeDraft, username, onCreate, onOpenTemplates, onOpen }) {
   const displayName = username || 'Rara'
-  return <section className="plain-screen home-screen"><div className="topbar"><div><p className="eyebrow">Kamis, 26 November 2026</p><h1>Selamat datang, <em>{displayName}.</em></h1></div><button className="avatar" aria-label="Buka profil">{displayName[0].toUpperCase()}</button></div>
-    <div className="home-hero"><div><span className="eyebrow light-text">Kisahmu, selamanya</span><h2>Wujudkan undangan pernikahan impianmu.</h2><button className="light-button" onClick={onCreate}>Buat Undangan <Icon name="arrow" size={17} /></button></div><div className="hero-stamp"><Icon name="sparkle" size={22} /></div></div>
-    <div className="section-heading"><div><p className="eyebrow">Koleksi pilihan</p><h2>Template untukmu</h2></div><button className="text-button" onClick={onOpenTemplates}>Lihat semua <Icon name="arrow" size={15} /></button></div>
+  return <section className="plain-screen home-screen">
+    <header className="home-topbar">
+      <div className="home-brand"><img src={appIcon} alt="" /><span>Undangan<span>Ku</span><small>RUANG CERITA BAHAGIA</small></span></div>
+      <button className="avatar" aria-label={`Profil ${displayName}`}>{displayName[0].toUpperCase()}</button>
+    </header>
+    <section className="home-hero" style={{ backgroundImage: `linear-gradient(180deg, rgba(20,40,29,.28), rgba(20,40,29,.9)), url("${heroImage}")` }}>
+      <div className="home-hero-copy">
+        <span className="home-kicker"><span /> CERITA YANG DIMULAI</span>
+        <h1>Hari bahagia,<br /><em>dirangkai dengan indah.</em></h1>
+        <p>Rancang undangan yang terasa seperti kisah kalian sendiri.</p>
+        <button className="home-create-button" onClick={onCreate}>Buat undangan <Icon name="arrow" size={17} /></button>
+      </div>
+      <span className="hero-stamp" aria-hidden="true"><Icon name="sparkle" size={22} /></span>
+    </section>
+    <div className="section-heading home-section-heading"><div><p className="eyebrow">Pilihan untuk hari istimewa</p><h2>Temukan nuansanya</h2></div><button className="text-button" onClick={onOpenTemplates}>Lihat semua <Icon name="arrow" size={15} /></button></div>
     <div className="template-strip">{templates.slice(0, 3).map((item) => <TemplateCard key={item.id} item={item} compact onClick={onOpenTemplates} />)}</div>
-    <div className="section-heading draft-heading"><div><p className="eyebrow">Rancanganmu</p><h2>Undangan Saya</h2></div><span className="count-pill">{drafts.length}/2</span></div>
-    {activeDraft ? <div className="draft-card"><div className="draft-thumb" style={{ backgroundImage: `url("${heroImage}")` }}><span>{activeDraft.status}</span></div><div className="draft-copy"><h3>{activeDraft.groom || 'Rancangan Undangan' } <span>&amp;</span> {activeDraft.bride || 'Pasangan'}</h3><p>{activeDraft.template?.title || 'Template pilihan'} · Tema {activeDraft.color + 1}</p><button className="outline-button" onClick={() => onOpen('preview')}>Lihat pratinjau</button></div></div> : <div className="empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada rancangan</h3><p>Mulai dari template yang paling mewakili kisah kalian.</p><button className="primary-button" onClick={onCreate}>Buat rancangan pertama <Icon name="arrow" size={17} /></button></div>}
+    <div className="section-heading draft-heading home-section-heading"><div><p className="eyebrow">Disimpan untuk nanti</p><h2>Rancanganmu</h2></div><span className="count-pill">{drafts.length}/2</span></div>
+    {activeDraft ? <div className="draft-card"><div className="draft-thumb" style={{ backgroundImage: `url("${heroImage}")` }}><span>{activeDraft.status}</span></div><div className="draft-copy"><h3>{activeDraft.groom || 'Rancangan Undangan' } <span>&amp;</span> {activeDraft.bride || 'Pasangan'}</h3><p>{activeDraft.template?.title || 'Template pilihan'} · Tema {activeDraft.color + 1}</p><button className="outline-button" onClick={() => onOpen('preview')}>Lihat pratinjau</button></div></div> : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada rancangan</h3><p>Mulai dari template yang paling mewakili kisah kalian.</p><button className="primary-button" onClick={onCreate}>Buat rancangan pertama <Icon name="arrow" size={17} /></button></div>}
   </section>
 }
 
