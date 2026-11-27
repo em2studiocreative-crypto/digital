@@ -8,7 +8,11 @@ if ('serviceWorker' in navigator && import.meta.env.DEV) {
 }
 
 if ('serviceWorker' in navigator && !import.meta.env.DEV) {
-  window.addEventListener('load', () => navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`))
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`, { updateViaCache: 'none' })
+      .then((registration) => registration.update())
+      .catch((error) => console.error('Gagal memeriksa pembaruan aplikasi:', error))
+  })
 }
 
 const heroImage = `${import.meta.env.BASE_URL}hero-couple.jpeg`
