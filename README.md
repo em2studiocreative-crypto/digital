@@ -12,7 +12,7 @@ npm run dev
 Prototype ini menggunakan data lokal untuk simulasi alur:
 
 - onboarding
-- login nomor telepon
+- daftar dan login dengan Nama ID dan kata sandi (akun demo hanya tersimpan di memori selama sesi berjalan)
 - beranda
 - galeri template
 - pembuatan rancangan
@@ -21,7 +21,7 @@ Prototype ini menggunakan data lokal untuk simulasi alur:
 - status pembayaran manual
 - link undangan
 
-Backend, OTP nyata, payment gateway/Virtual Account, dashboard admin, database, RSVP tersimpan, dan upload bukti transfer belum terhubung pada tahap ini.
+Autentikasi Nama ID dan kata sandi saat ini hanya simulasi di sisi klien dan bukan untuk penggunaan produksi. OTP, backend autentikasi, payment gateway/Virtual Account, dashboard admin, database, RSVP tersimpan, dan upload bukti transfer belum terhubung pada tahap ini.
 
 ## PWA
 

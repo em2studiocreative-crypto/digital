@@ -27,6 +27,9 @@ const Icon = ({ name, size = 20, stroke = 'currentColor' }) => {
     home: <><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M9 21v-7h6v7"/></>,
     grid: <><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></>,
     user: <><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>,
+    lock: <><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></>,
+    eye: <><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.5"/></>,
+    eyeOff: <><path d="m3 3 18 18"/><path d="M10.6 6.2A10.7 10.7 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3.1 3.5M6.2 6.3C3.5 8 2 12 2 12s3.5 6 10 6a10.7 10.7 0 0 0 3-.4"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></>,
     search: <><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,
     play: <path d="m9 6 9 6-9 6Z"/>,
     share: <><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.6M8.2 13.2l7.6 4.6"/></>,
@@ -52,7 +55,12 @@ const templates = [
 function App() {
   const [screen, setScreen] = useState('welcome')
   const [onboarding, setOnboarding] = useState(0)
-  const [phone, setPhone] = useState('')
+  const [authMode, setAuthMode] = useState('login')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [demoAccounts, setDemoAccounts] = useState([])
+  const [currentUser, setCurrentUser] = useState('')
+  const [authMessage, setAuthMessage] = useState('')
   const [drafts, setDrafts] = useState([])
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [selectedColor, setSelectedColor] = useState(0)
@@ -64,7 +72,40 @@ function App() {
   const activeDraft = useMemo(() => drafts[0], [drafts])
   const go = (next) => setScreen(next)
 
-  const startApp = () => go('login')
+  const startApp = () => {
+    setAuthMode('login')
+    setAuthMessage('')
+    go('login')
+  }
+  const submitAuth = (event) => {
+    event.preventDefault()
+    const id = username.trim().toLowerCase()
+    if (!/^[a-z0-9._-]{3,20}$/.test(id)) {
+      setAuthMessage('Nama ID harus 3–20 karakter: huruf, angka, titik, garis bawah, atau tanda hubung.')
+      return
+    }
+    if (password.length < 8) {
+      setAuthMessage('Kata sandi harus terdiri dari minimal 8 karakter.')
+      return
+    }
+    if (authMode === 'register') {
+      if (demoAccounts.some((account) => account.username === id)) {
+        setAuthMessage('Nama ID ini sudah digunakan. Silakan pilih Nama ID lain.')
+        return
+      }
+      setDemoAccounts((accounts) => [...accounts, { username: id, password }])
+    } else {
+      const account = demoAccounts.find((item) => item.username === id && item.password === password)
+      if (!account) {
+        setAuthMessage('Nama ID atau kata sandi tidak cocok. Coba lagi atau buat akun baru.')
+        return
+      }
+    }
+    setCurrentUser(id)
+    setAuthMessage('')
+    setPassword('')
+    go('home')
+  }
   const createDraft = () => {
     if (drafts.length >= 2) return
     setSelectedTemplate(null)
@@ -85,8 +126,8 @@ function App() {
   return (
     <main className="app-shell">
       {screen === 'welcome' && <Welcome onboarding={onboarding} setOnboarding={setOnboarding} onStart={startApp} />}
-      {screen === 'login' && <Login phone={phone} setPhone={setPhone} onContinue={() => go('home')} />}
-      {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} onCreate={createDraft} onOpenTemplates={() => go('templates')} onOpen={setScreen} />}
+      {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} onSubmit={submitAuth} />}
+      {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpenTemplates={() => go('templates')} onOpen={setScreen} />}
       {screen === 'templates' && <TemplateGallery onBack={() => go('home')} selected={selectedTemplate} setSelected={setSelectedTemplate} onUse={() => go('editor')} />}
       {screen === 'editor' && <Editor form={form} setForm={setForm} selectedTemplate={selectedTemplate} selectedColor={selectedColor} setSelectedColor={setSelectedColor} onBack={() => go('templates')} onSave={saveDraft} />}
       {screen === 'preview' && <Preview draft={activeDraft} onBack={() => go('home')} onPublish={publish} />}
@@ -155,19 +196,55 @@ function Welcome({ onboarding, setOnboarding, onStart }) {
   </section>
 }
 
-function Login({ phone, setPhone, onContinue }) {
-  return <section className="plain-screen centered-screen"><div className="auth-card">
-    <div className="mini-logo">Undangan<span>Ku</span></div><p className="eyebrow">Selamat datang</p><h1>Mulai menyiapkan hari bahagiamu.</h1><p className="muted">Masuk dengan nomor telepon untuk menyimpan rancangan undanganmu.</p>
-    <label className="field-label" htmlFor="phone">Nomor telepon</label><div className="phone-field"><span>+62</span><input id="phone" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} placeholder="812 3456 7890" inputMode="numeric" /></div>
-    <button className="primary-button full" disabled={phone.length < 8} onClick={onContinue}>Kirim kode OTP <Icon name="arrow" size={18} /></button>
-    <p className="fine-print">Dengan melanjutkan, kamu menyetujui Syarat Penggunaan dan Kebijakan Privasi UndanganKu.</p>
-  </div></section>
+function AuthScreen({ mode, setMode, username, setUsername, password, setPassword, message, onSubmit }) {
+  const [showPassword, setShowPassword] = useState(false)
+  const isRegister = mode === 'register'
+  return <section className={`auth-screen ${isRegister ? 'register-mode' : ''}`}>
+    <header className="auth-hero">
+      <div className="auth-brand"><img src={appIcon} alt="" /><span>Undangan<span>Ku</span></span></div>
+      <div className="auth-hero-copy">
+        <p className="auth-kicker">Undanganmu dimulai di sini</p>
+        <h1>{isRegister ? 'Satu akun untuk cerita baru.' : 'Senang melihatmu kembali.'}</h1>
+      </div>
+      <div className="auth-mode-prompt">
+        <span>{isRegister ? 'Sudah punya akun?' : 'Belum punya akun?'}</span>
+        <button type="button" onClick={() => setMode(isRegister ? 'login' : 'register')}>{isRegister ? 'Masuk' : 'Daftar'}</button>
+      </div>
+      <span className="auth-orbit orbit-one" />
+      <span className="auth-orbit orbit-two" />
+    </header>
+    <div className="auth-sheet">
+      <div className="auth-heading">
+        <p className="eyebrow">{isRegister ? 'Buat akun baru' : 'Selamat datang kembali'}</p>
+        <h2>{isRegister ? 'Daftar' : 'Masuk'}</h2>
+        <p className="muted">{isRegister ? 'Buat Nama ID dan kata sandi untuk mulai merancang.' : 'Masuk untuk melanjutkan rancangan undanganmu.'}</p>
+      </div>
+      <form className="auth-form" onSubmit={onSubmit}>
+        <label className="field-label" htmlFor="account-id">Nama ID</label>
+        <div className="auth-input-wrap">
+          <Icon name="user" size={19} />
+          <input id="account-id" type="text" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="contoh: rara.senja" minLength={3} maxLength={20} required />
+        </div>
+        {isRegister && <span className="auth-hint">3–20 karakter, gunakan huruf kecil, angka, titik, _ atau -</span>}
+        <label className="field-label" htmlFor="account-password">Kata sandi</label>
+        <div className="auth-input-wrap">
+          <Icon name="lock" size={19} />
+          <input id="account-password" type={showPassword ? 'text' : 'password'} autoComplete={isRegister ? 'new-password' : 'current-password'} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Minimal 8 karakter" minLength={8} required />
+          <button className="password-visibility" type="button" aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'} onClick={() => setShowPassword((visible) => !visible)}><Icon name={showPassword ? 'eyeOff' : 'eye'} size={19} /></button>
+        </div>
+        {message && <p className="auth-message" role="alert">{message}</p>}
+        <button className="primary-button full auth-submit" type="submit">{isRegister ? 'Buat akun' : 'Masuk'}<Icon name="arrow" size={18} /></button>
+      </form>
+      <p className="auth-demo-note">Mode pratinjau: akun hanya tersedia selama sesi ini. Pendaftaran dan login aman memerlukan backend.</p>
+    </div>
+  </section>
 }
 
 function Header({ title, onBack, action }) { return <header className="page-header"><button className="icon-button" onClick={onBack} aria-label="Kembali"><Icon name="back" /></button><h2>{title}</h2>{action || <span className="header-spacer" />}</header> }
 
-function Home({ drafts, activeDraft, onCreate, onOpenTemplates, onOpen }) {
-  return <section className="plain-screen home-screen"><div className="topbar"><div><p className="eyebrow">Kamis, 26 November 2026</p><h1>Selamat datang, <em>Rara.</em></h1></div><button className="avatar" aria-label="Buka profil">R</button></div>
+function Home({ drafts, activeDraft, username, onCreate, onOpenTemplates, onOpen }) {
+  const displayName = username || 'Rara'
+  return <section className="plain-screen home-screen"><div className="topbar"><div><p className="eyebrow">Kamis, 26 November 2026</p><h1>Selamat datang, <em>{displayName}.</em></h1></div><button className="avatar" aria-label="Buka profil">{displayName[0].toUpperCase()}</button></div>
     <div className="home-hero"><div><span className="eyebrow light-text">Kisahmu, selamanya</span><h2>Wujudkan undangan pernikahan impianmu.</h2><button className="light-button" onClick={onCreate}>Buat Undangan <Icon name="arrow" size={17} /></button></div><div className="hero-stamp"><Icon name="sparkle" size={22} /></div></div>
     <div className="section-heading"><div><p className="eyebrow">Koleksi pilihan</p><h2>Template untukmu</h2></div><button className="text-button" onClick={onOpenTemplates}>Lihat semua <Icon name="arrow" size={15} /></button></div>
     <div className="template-strip">{templates.slice(0, 3).map((item) => <TemplateCard key={item.id} item={item} compact onClick={onOpenTemplates} />)}</div>
