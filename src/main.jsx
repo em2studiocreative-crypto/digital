@@ -74,6 +74,12 @@ function App() {
   const go = (next) => setScreen(next)
 
   useEffect(() => {
+    const root = document.documentElement
+    root.classList.toggle('welcome-open', screen === 'welcome')
+    return () => root.classList.remove('welcome-open')
+  }, [screen])
+
+  useEffect(() => {
     if (!supabase) return undefined
 
     let active = true
@@ -184,7 +190,7 @@ function App() {
   }
 
   return (
-    <main className={`app-shell ${screen === 'login' ? 'auth-app-shell' : ''}`}>
+    <main className={`app-shell ${screen === 'welcome' ? 'welcome-app-shell' : ''} ${screen === 'login' ? 'auth-app-shell' : ''}`}>
       {screen === 'welcome' && <Welcome onboarding={onboarding} setOnboarding={setOnboarding} onStart={startApp} />}
       {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} busy={authBusy} onSubmit={submitAuth} />}
       {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpenTemplates={() => go('templates')} onOpen={setScreen} />}
