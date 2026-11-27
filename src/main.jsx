@@ -388,19 +388,19 @@ function Home({ drafts, activeDraft, username, onCreate, onOpen }) {
         <h2>Dari ide hingga siap dibagikan.</h2>
       </header>
       <div className="home-flow-row">
-        <div className="home-flow-step"><span className="home-flow-marker"><small>01</small><span className="home-flow-icon"><Icon name="grid" size={21} /></span></span><strong>Pilih desain</strong><small>Temukan gayamu</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>01</small><span className="home-flow-icon"><Icon name="grid" size={25} /></span></span><strong>Pilih desain</strong><small>Temukan gayamu</small></div>
         <Icon className="home-flow-arrow" name="arrow" size={18} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>02</small><span className="home-flow-icon"><Icon name="file" size={21} /></span></span><strong>Isi data</strong><small>Nama &amp; acara</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>02</small><span className="home-flow-icon"><Icon name="file" size={25} /></span></span><strong>Isi data</strong><small>Nama &amp; acara</small></div>
         <Icon className="home-flow-arrow" name="arrow" size={18} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>03</small><span className="home-flow-icon"><Icon name="palette" size={21} /></span></span><strong>Atur warna</strong><small>Pilih nuansa</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>03</small><span className="home-flow-icon"><Icon name="palette" size={25} /></span></span><strong>Atur warna</strong><small>Pilih nuansa</small></div>
       </div>
       <Icon className="home-flow-turn" name="arrowDown" size={17} />
       <div className="home-flow-row home-flow-row-reverse">
-        <div className="home-flow-step"><span className="home-flow-marker"><small>06</small><span className="home-flow-icon"><Icon name="share" size={21} /></span></span><strong>Bagikan</strong><small>Kirim ke tamu</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>06</small><span className="home-flow-icon"><Icon name="share" size={25} /></span></span><strong>Bagikan</strong><small>Kirim ke tamu</small></div>
         <Icon className="home-flow-arrow" name="arrowLeft" size={18} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>05</small><span className="home-flow-icon"><Icon name="lock" size={21} /></span></span><strong>Aktivasi</strong><small>Aktifkan undangan</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>05</small><span className="home-flow-icon"><Icon name="lock" size={25} /></span></span><strong>Aktivasi</strong><small>Aktifkan undangan</small></div>
         <Icon className="home-flow-arrow" name="arrowLeft" size={18} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>04</small><span className="home-flow-icon"><Icon name="eye" size={21} /></span></span><strong>Pratinjau</strong><small>Cek hasilnya</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>04</small><span className="home-flow-icon"><Icon name="eye" size={25} /></span></span><strong>Pratinjau</strong><small>Cek hasilnya</small></div>
       </div>
     </section>
     <div className="section-heading draft-heading home-section-heading"><div><p className="eyebrow">Disimpan untuk nanti</p><h2>Rancanganmu</h2></div><span className="count-pill">{drafts.length}/2</span></div>
