@@ -11,12 +11,9 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(184, 147, 91
 .centered-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; }
 .welcome { min-height: 100vh; min-height: 100svh; min-height: 100dvh; background-position: center; background-size: cover; color: #fff; display: flex; flex-direction: column; justify-content: space-between; padding: max(16px, env(safe-area-inset-top)) clamp(14px, 5vw, 22px) max(20px, env(safe-area-inset-bottom)); position: relative; isolation: isolate; overflow: hidden; }
 .welcome-snow { position: absolute; z-index: -1; inset: 0; overflow: hidden; pointer-events: none; }
-.snowflake { position: absolute; top: -5%; width: 5px; height: 5px; border-radius: 50%; background: rgba(255, 255, 255, .95); box-shadow: 0 0 9px 3px rgba(255, 255, 255, .3); animation: snow-drift 19s linear infinite; }
-.snowflake-one { left: 18%; animation-delay: -2s; }
-.snowflake-two { left: 42%; width: 3px; height: 3px; animation-delay: -8s; animation-duration: 22s; }
-.snowflake-three { left: 68%; animation-delay: -13s; animation-duration: 20s; }
-.snowflake-four { left: 87%; width: 3px; height: 3px; animation-delay: -17s; animation-duration: 24s; }
-@keyframes snow-drift { 0% { opacity: 0; transform: translate3d(0, 0, 0); } 14% { opacity: .7; } 82% { opacity: .55; } 100% { opacity: 0; transform: translate3d(12px, 28vh, 0); } }
+.snowflake { position: absolute; top: -5%; border-radius: 50%; background: rgba(255, 255, 255, .98); box-shadow: 0 0 2px 0 rgba(255, 255, 255, .25); animation: snow-drift var(--snow-duration) linear var(--snow-delay) infinite, snow-glow var(--glow-duration) ease-in-out var(--glow-delay) infinite; }
+@keyframes snow-drift { 0% { opacity: .92; transform: translate3d(0, 0, 0); } 12%, 88% { opacity: .98; } 96% { opacity: .85; } 100% { opacity: 0; transform: translate3d(12px, 110vh, 0); } }
+@keyframes snow-glow { 0%, 100% { box-shadow: 0 0 2px 0 rgba(255, 255, 255, .25); } 50% { box-shadow: 0 0 var(--glow-size) var(--glow-spread) rgba(255, 255, 255, .9); } }
 .welcome-top, .topbar, .page-header, .section-heading, .draft-card, .mini-feature, .link-card { display: flex; align-items: center; justify-content: space-between; }
 .welcome-top, .welcome-content { position: relative; z-index: 1; }
 .brand-mark, .mini-logo { font-family: 'Playfair Display', serif; font-size: 24px; letter-spacing: -.6px; color: #fff; }

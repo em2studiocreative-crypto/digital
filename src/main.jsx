@@ -97,6 +97,21 @@ function App() {
 }
 
 function Welcome({ onboarding, setOnboarding, onStart }) {
+  const snowflakes = useMemo(() => Array.from({ length: 7 }, (_, index) => {
+    const duration = 18 + Math.random() * 10
+    const glowDuration = 2.5 + Math.random() * 4
+    return {
+      id: index,
+      left: `${8 + Math.random() * 84}%`,
+      size: `${3 + Math.random() * 2}px`,
+      duration: `${duration}s`,
+      delay: `${-Math.random() * duration}s`,
+      glowDuration: `${glowDuration}s`,
+      glowDelay: `${-Math.random() * glowDuration}s`,
+      glowSize: `${5 + Math.random() * 7}px`,
+      glowSpread: `${1 + Math.random() * 3}px`,
+    }
+  }), [])
   const slides = [
     { eyebrow: 'Pernikahan yang berkesan', title: 'Rencanakan Hari Bahagia dengan Mudah', body: 'Buat undangan digital yang terasa personal, elegan, dan siap dibagikan.', button: 'Mulai Sekarang' },
     { eyebrow: 'Pilih yang paling kamu suka', title: 'Template yang Mewakili Kisahmu', body: 'Mulai dari desain natural hingga tradisional. Semua template tersedia untukmu.', button: 'Berikutnya' },
@@ -105,10 +120,21 @@ function Welcome({ onboarding, setOnboarding, onStart }) {
   const slide = slides[onboarding]
   return <section className="welcome" style={{ backgroundImage: `linear-gradient(180deg, rgba(18,32,25,.04) 20%, rgba(18,28,21,.3) 50%, rgba(18,28,21,.9) 100%), radial-gradient(ellipse at 50% 78%, rgba(224,183,103,.2), transparent 58%), url("${heroImage}")` }}>
     <div className="welcome-snow" aria-hidden="true">
-      <span className="snowflake snowflake-one" />
-      <span className="snowflake snowflake-two" />
-      <span className="snowflake snowflake-three" />
-      <span className="snowflake snowflake-four" />
+      {snowflakes.map((flake) => <span
+        className="snowflake"
+        key={flake.id}
+        style={{
+          left: flake.left,
+          width: flake.size,
+          height: flake.size,
+          '--snow-duration': flake.duration,
+          '--snow-delay': flake.delay,
+          '--glow-duration': flake.glowDuration,
+          '--glow-delay': flake.glowDelay,
+          '--glow-size': flake.glowSize,
+          '--glow-spread': flake.glowSpread,
+        }}
+      />)}
     </div>
     <div className="welcome-top"><span className="brand-mark">Undangan<span>Ku</span></span></div>
     <div className="welcome-content">
