@@ -145,10 +145,12 @@ h1, h2 { font-family: 'Playfair Display', serif; font-weight: 500; letter-spacin
 .home-hero h1 { color: #fffdf8; font-size: clamp(29px, 8vw, 36px); line-height: 1.02; letter-spacing: -.8px; margin: 0 0 12px; text-wrap: balance; }
 .home-hero h1 em { color: #e4c78d; font-weight: 500; }
 .home-hero-copy > p { max-width: 245px; color: rgba(255,255,255,.82); font-size: 12px; line-height: 1.5; margin: 0 0 17px; }
-.home-create-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 43px; padding: 0 16px; border: 1px solid rgba(255,255,255,.25); border-radius: 4px; background: #e4c78d; color: #263C30; font-size: 12px; font-weight: 700; transition: transform .2s ease, background .2s ease; }
-.home-create-button:hover { transform: translateY(-2px); background: #eed8a8; }
-.home-create-button:active { transform: translateY(1px) scale(.98); }
-.hero-stamp { position: absolute; top: 22px; right: 22px; color: #e4c78d; }
+.home-flow { margin: -13px 0 30px; padding: 15px 14px 13px; border: 1px solid rgba(184,147,91,.28); border-radius: 14px; background: rgba(255,253,248,.72); }
+.home-flow > .eyebrow { margin-bottom: 12px; font-size: 8px; letter-spacing: 1.35px; }
+.home-flow-steps { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.home-flow-step { display: grid; justify-items: center; gap: 6px; min-width: 0; color: #405144; font-size: 9px; font-weight: 600; text-align: center; }
+.home-flow-icon { width: 35px; height: 35px; display: grid; place-items: center; border: 1px solid rgba(184,147,91,.45); border-radius: 12px; background: #f3eddf; color: #263C30; }
+.home-flow-arrow { flex: 0 0 auto; margin: 0 1px 17px; color: var(--gold); }
 .section-heading { margin-bottom: 14px; }
 .section-heading h2 { font-size: 23px; margin: 0; }
 .home-section-heading { align-items: flex-end; margin-bottom: 14px; }

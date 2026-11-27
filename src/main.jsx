@@ -20,7 +20,7 @@ const heroImage = `${import.meta.env.BASE_URL}hero-couple.webp`
 const heartDividerImage = `${import.meta.env.BASE_URL}heart-divider.png`
 const appIcon = `${import.meta.env.BASE_URL}icon-192.png`
 
-const Icon = ({ name, size = 20, stroke = 'currentColor' }) => {
+const Icon = ({ name, size = 20, stroke = 'currentColor', className = '' }) => {
   const paths = {
     arrow: <><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></>,
     back: <><path d="m15 18-6-6 6-6"/></>,
@@ -44,7 +44,7 @@ const Icon = ({ name, size = 20, stroke = 'currentColor' }) => {
     sparkle: <><path d="m12 3 1.6 5.4L19 10l-5.4 1.6L12 17l-1.6-5.4L5 10l5.4-1.6Z"/><path d="m19 15 .7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7Z"/></>,
     close: <><path d="m6 6 12 12M18 6 6 18"/></>,
   }
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
+  return <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
 
 const templates = [
@@ -370,9 +370,19 @@ function Home({ drafts, activeDraft, username, onCreate, onOpenTemplates, onOpen
         <span className="home-kicker"><span /> RUANG PRIBADIMU</span>
         <h1>Selamat datang,<br /><em>{displayName}.</em></h1>
         <p>Rangkai undangan sesuai ceritamu. Pilih desain yang tetap indah tanpa foto.</p>
-        <button className="home-create-button" onClick={onCreate}>Buat undangan <Icon name="arrow" size={17} /></button>
       </div>
-      <span className="hero-stamp" aria-hidden="true"><Icon name="sparkle" size={22} /></span>
+    </section>
+    <section className="home-flow" aria-label="Alur membuat undangan">
+      <p className="eyebrow">Mudah dalam 4 langkah</p>
+      <div className="home-flow-steps">
+        <div className="home-flow-step"><span className="home-flow-icon"><Icon name="grid" size={17} /></span><span>Pilih desain</span></div>
+        <Icon className="home-flow-arrow" name="arrow" size={15} />
+        <div className="home-flow-step"><span className="home-flow-icon"><Icon name="file" size={17} /></span><span>Isi data</span></div>
+        <Icon className="home-flow-arrow" name="arrow" size={15} />
+        <div className="home-flow-step"><span className="home-flow-icon"><Icon name="check" size={17} /></span><span>Pratinjau</span></div>
+        <Icon className="home-flow-arrow" name="arrow" size={15} />
+        <div className="home-flow-step"><span className="home-flow-icon"><Icon name="share" size={17} /></span><span>Bagikan</span></div>
+      </div>
     </section>
     <div className="section-heading home-section-heading"><div><p className="eyebrow">Simple, full color, dan lainnya</p><h2>Pilih konsep desain</h2></div><button className="text-button" onClick={onOpenTemplates}>Lihat semua <Icon name="arrow" size={15} /></button></div>
     <div className="template-strip">{templates.slice(0, 3).map((item) => <TemplateCard key={item.id} item={item} compact onClick={onOpenTemplates} />)}</div>
