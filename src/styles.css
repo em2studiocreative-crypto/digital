@@ -18,6 +18,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(184, 147, 91
 .icon-button.light { color: #fff; border: 1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.12); }
 .icon-button.small { width: 38px; height: 38px; background: var(--cream); }
 .welcome-content { max-width: 390px; margin-top: auto; padding-top: 80px; }
+.welcome-content { width: 100%; text-align: center; }
 .eyebrow { margin: 0 0 9px; color: var(--gold); text-transform: uppercase; font-size: 10px; letter-spacing: 1.8px; font-weight: 700; }
 .light-text { color: #e1c78e; }
 .ornament { margin-right: 9px; font-size: 13px; }
@@ -34,6 +35,22 @@ h1, h2 { font-family: 'Playfair Display', serif; font-weight: 500; letter-spacin
 .primary-button:hover, .light-button:hover, .outline-button:hover { transform: translateY(-2px); }
 .primary-button:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
 .glass-button { width: min(100%, 340px); color: #233229; background: rgba(236, 226, 187, .88); border-color: rgba(255,255,255,.55); box-shadow: 0 12px 30px rgba(0,0,0,.18); }
+.welcome .eyebrow { margin-bottom: 12px; }
+.welcome h1 { max-width: 100%; margin-bottom: 14px; color: #f7f0dc; font-size: clamp(30px, 7vw, 36px); line-height: 1.1; letter-spacing: -.8px; text-wrap: balance; }
+.welcome p { max-width: 350px; margin: 0 auto 22px; color: rgba(255,255,255,.88); font-family: 'Playfair Display', serif; font-size: clamp(16px, 4.7vw, 20px); font-style: italic; line-height: 1.45; text-wrap: balance; }
+.love-divider { display: flex; align-items: center; justify-content: center; gap: 8px; color: #e4c47d; }
+.love-divider::before, .love-divider::after { content: ''; width: clamp(58px, 16vw, 102px); height: 1px; background: currentColor; }
+.love-divider-top { width: 100%; margin: 0 auto 4px; transform: translateY(18px); }
+.love-divider-top::before, .love-divider-top::after { display: none; }
+.love-divider-top span { display: block; width: min(76%, 290px); aspect-ratio: 3 / 1; margin: 0 auto; background: linear-gradient(110deg, #f1d38f, #dfb966); -webkit-mask: var(--heart-divider-image) center / contain no-repeat; mask: var(--heart-divider-image) center / contain no-repeat; }
+.love-divider-bottom { margin: 0 auto 16px; }
+.love-divider-bottom::before, .love-divider-bottom::after { width: clamp(68px, 20vw, 120px); }
+.love-divider-bottom svg { width: 14px; height: 13px; }
+.welcome .pager { justify-content: center; }
+.welcome .glass-button { position: relative; width: min(100%, 360px); min-height: 68px; padding: 0 58px; border: 0; border-radius: 999px; background: linear-gradient(110deg, #f1d38f, #dfb966); box-shadow: 0 12px 28px rgba(24, 28, 17, .24); font-family: 'Playfair Display', serif; font-size: clamp(20px, 5.3vw, 26px); font-weight: 500; letter-spacing: -.3px; }
+.welcome .glass-button svg { position: absolute; right: 27px; width: 24px; height: 24px; }
+.welcome .glass-button:hover { box-shadow: 0 15px 32px rgba(24, 28, 17, .3); }
+.welcome .glass-button:active { transform: translateY(1px) scale(.99); }
 .full { width: 100%; }
 .light-button { background: #f0e6c8; color: var(--forest-deep); }
 .outline-button { background: transparent; color: var(--forest); border-color: #c5d0c3; }

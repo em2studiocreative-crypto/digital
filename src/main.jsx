@@ -11,8 +11,8 @@ if ('serviceWorker' in navigator && !import.meta.env.DEV) {
   window.addEventListener('load', () => navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`))
 }
 
-// g2.png is the supplied visual asset for the full-screen opening background.
-const heroImage = `${import.meta.env.BASE_URL}g2.png`
+const heroImage = `${import.meta.env.BASE_URL}hero-couple.jpeg`
+const heartDividerImage = `${import.meta.env.BASE_URL}heart-divider.png`
 
 const Icon = ({ name, size = 20, stroke = 'currentColor' }) => {
   const paths = {
@@ -99,12 +99,19 @@ function Welcome({ onboarding, setOnboarding, onStart }) {
     { eyebrow: 'Satu link untuk semua tamu', title: 'Bagikan dengan Elegan', body: 'Terbitkan undangan dengan link profesional yang mudah dikirim lewat WhatsApp.', button: 'Mulai Sekarang' },
   ]
   const slide = slides[onboarding]
-  return <section className="welcome" style={{ backgroundImage: `linear-gradient(180deg, rgba(18,32,25,.08) 25%, rgba(18,28,21,.92) 90%), url("${heroImage}")` }}>
+  return <section className="welcome" style={{ backgroundImage: `linear-gradient(180deg, rgba(18,32,25,.04) 20%, rgba(18,28,21,.3) 50%, rgba(18,28,21,.9) 100%), radial-gradient(ellipse at 50% 78%, rgba(224,183,103,.2), transparent 58%), url("${heroImage}")` }}>
     <div className="welcome-top"><span className="brand-mark">Undangan<span>Ku</span></span><button className="icon-button light" aria-label="Tutup"><Icon name="close" /></button></div>
     <div className="welcome-content">
-      <div className="eyebrow light-text"><span className="ornament">✦</span>{slide.eyebrow}</div>
+      <div className="love-divider love-divider-top" aria-hidden="true">
+        <span style={{ '--heart-divider-image': `url("${heartDividerImage}")` }} />
+      </div>
       <h1>{slide.title}</h1>
       <p>{slide.body}</p>
+      <div className="love-divider love-divider-bottom" aria-hidden="true">
+        <svg viewBox="0 0 18 16" fill="currentColor">
+          <path d="M9 15.1 2.2 8.8C-1.6 5.2 3.5-.3 7.2 3.3L9 5l1.8-1.7c3.7-3.6 8.8 1.9 5 5.5L9 15.1Z" />
+        </svg>
+      </div>
       <div className="pager" aria-label={`Slide ${onboarding + 1} dari 3`}>{slides.map((_, index) => <button key={index} aria-label={`Buka slide ${index + 1}`} className={index === onboarding ? 'active' : ''} onClick={() => setOnboarding(index)} />)}</div>
       <button className="primary-button glass-button" onClick={onboarding === 2 || onboarding === 0 ? onStart : () => setOnboarding(onboarding + 1)}>{slide.button}<Icon name="arrow" size={18} /></button>
     </div>
