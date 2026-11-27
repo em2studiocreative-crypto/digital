@@ -373,15 +373,18 @@ function Home({ drafts, activeDraft, username, onCreate, onOpenTemplates, onOpen
       </div>
     </section>
     <section className="home-flow" aria-label="Alur membuat undangan">
-      <p className="eyebrow">Mudah dalam 4 langkah</p>
+      <header className="home-flow-heading">
+        <p className="eyebrow">CARA KERJANYA</p>
+        <h2>Dari ide hingga siap dibagikan.</h2>
+      </header>
       <div className="home-flow-steps">
-        <div className="home-flow-step"><span className="home-flow-icon"><Icon name="grid" size={17} /></span><span>Pilih desain</span></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>01</small><span className="home-flow-icon"><Icon name="grid" size={17} /></span></span><strong>Pilih desain</strong><small>Temukan gayamu</small></div>
         <Icon className="home-flow-arrow" name="arrow" size={15} />
-        <div className="home-flow-step"><span className="home-flow-icon"><Icon name="file" size={17} /></span><span>Isi data</span></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>02</small><span className="home-flow-icon"><Icon name="file" size={17} /></span></span><strong>Isi data</strong><small>Nama &amp; acara</small></div>
         <Icon className="home-flow-arrow" name="arrow" size={15} />
-        <div className="home-flow-step"><span className="home-flow-icon"><Icon name="check" size={17} /></span><span>Pratinjau</span></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>03</small><span className="home-flow-icon"><Icon name="eye" size={17} /></span></span><strong>Pratinjau</strong><small>Cek hasilnya</small></div>
         <Icon className="home-flow-arrow" name="arrow" size={15} />
-        <div className="home-flow-step"><span className="home-flow-icon"><Icon name="share" size={17} /></span><span>Bagikan</span></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>04</small><span className="home-flow-icon"><Icon name="share" size={17} /></span></span><strong>Bagikan</strong><small>Kirim ke tamu</small></div>
       </div>
     </section>
     <div className="section-heading home-section-heading"><div><p className="eyebrow">Simple, full color, dan lainnya</p><h2>Pilih konsep desain</h2></div><button className="text-button" onClick={onOpenTemplates}>Lihat semua <Icon name="arrow" size={15} /></button></div>
