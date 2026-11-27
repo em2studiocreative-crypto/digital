@@ -104,7 +104,27 @@ function Welcome({ onboarding, setOnboarding, onStart }) {
   ]
   const slide = slides[onboarding]
   return <section className="welcome" style={{ backgroundImage: `linear-gradient(180deg, rgba(18,32,25,.04) 20%, rgba(18,28,21,.3) 50%, rgba(18,28,21,.9) 100%), radial-gradient(ellipse at 50% 78%, rgba(224,183,103,.2), transparent 58%), url("${heroImage}")` }}>
-    <div className="welcome-top"><span className="brand-mark">Undangan<span>Ku</span></span><button className="icon-button light" aria-label="Tutup"><Icon name="close" /></button></div>
+    <div className="welcome-foliage" aria-hidden="true">
+      <svg className="foliage-sprig sprig-left" viewBox="0 0 180 230" fill="none">
+        <path className="sprig-stem" d="M4 4c18 56 60 105 144 205" />
+        <path className="sprig-leaf leaf-one" d="M32 50C5 45 4 25 8 13c20 2 34 14 24 37Z" />
+        <path className="sprig-leaf leaf-two" d="M43 69c5-25 24-31 38-28-2 20-16 34-38 28Z" />
+        <path className="sprig-leaf leaf-three" d="M65 103c-27-4-34-22-31-37 21 3 35 15 31 37Z" />
+        <path className="sprig-leaf leaf-four" d="M78 120c8-25 28-29 41-24-5 20-20 32-41 24Z" />
+        <path className="sprig-leaf leaf-five" d="M103 153c-26-8-30-27-24-41 20 6 32 20 24 41Z" />
+        <path className="sprig-leaf leaf-six" d="M116 170c11-23 32-25 44-18-8 19-24 29-44 18Z" />
+      </svg>
+      <svg className="foliage-sprig sprig-right" viewBox="0 0 180 230" fill="none">
+        <path className="sprig-stem" d="M4 4c18 56 60 105 144 205" />
+        <path className="sprig-leaf leaf-one" d="M32 50C5 45 4 25 8 13c20 2 34 14 24 37Z" />
+        <path className="sprig-leaf leaf-two" d="M43 69c5-25 24-31 38-28-2 20-16 34-38 28Z" />
+        <path className="sprig-leaf leaf-three" d="M65 103c-27-4-34-22-31-37 21 3 35 15 31 37Z" />
+        <path className="sprig-leaf leaf-four" d="M78 120c8-25 28-29 41-24-5 20-20 32-41 24Z" />
+        <path className="sprig-leaf leaf-five" d="M103 153c-26-8-30-27-24-41 20 6 32 20 24 41Z" />
+        <path className="sprig-leaf leaf-six" d="M116 170c11-23 32-25 44-18-8 19-24 29-44 18Z" />
+      </svg>
+    </div>
+    <div className="welcome-top"><span className="brand-mark">Undangan<span>Ku</span></span></div>
     <div className="welcome-content">
       <div className="love-divider love-divider-top" aria-hidden="true">
         <span style={{ '--heart-divider-image': `url("${heartDividerImage}")` }} />
