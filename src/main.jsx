@@ -239,7 +239,7 @@ function App() {
       {screen === 'share' && <Share onBack={() => go('home')} />}
       {['home', 'templates'].includes(screen) && <>
         {logoutMessage && <p className="nav-message" role="alert">{logoutMessage}</p>}
-        <BottomNav active={activeNav} setActive={(item) => { setLogoutMessage(''); setActiveNav(item); go(item === 'templates' ? 'templates' : 'home') }} onLogout={logout} />
+        <BottomNav active={screen === 'templates' ? 'templates' : screen === 'home' ? 'home' : activeNav} setActive={(item) => { setLogoutMessage(''); setActiveNav(item); go(item === 'templates' ? 'templates' : 'home') }} onLogout={logout} />
       </>}
     </main>
   )
