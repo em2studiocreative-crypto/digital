@@ -2,14 +2,14 @@
 
 :root { font-family: 'DM Sans', sans-serif; color: #233229; background: #e9eee6; font-synthesis: none; --ink: #233229; --forest: #263a2f; --forest-deep: #17261e; --sage: #c9d1bd; --cream: #f7f4eb; --paper: #fffdf8; --gold: #b8935b; --line: #dfe5dc; --muted: #7a857d; --shadow: 0 18px 50px rgba(28, 53, 39, .12); }
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; background: #e9eee6; }
+body { margin: 0; min-width: 0; background: #e9eee6; overflow-x: clip; }
 button, input { font: inherit; }
 button { cursor: pointer; }
 button:focus-visible, input:focus-visible { outline: 3px solid rgba(184, 147, 91, .55); outline-offset: 3px; }
-.app-shell { width: min(100%, 480px); min-height: 100vh; margin: 0 auto; background: var(--paper); position: relative; overflow-x: hidden; box-shadow: 0 0 70px rgba(18, 42, 28, .12); }
+.app-shell { width: min(100%, 480px); min-height: 100vh; min-height: 100dvh; margin: 0 auto; background: var(--paper); position: relative; overflow-x: clip; box-shadow: 0 0 70px rgba(18, 42, 28, .12); }
 .plain-screen { min-height: 100vh; padding: 22px 20px 110px; background: var(--paper); }
 .centered-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; }
-.welcome { min-height: 100vh; background-position: center; background-size: cover; color: #fff; display: flex; flex-direction: column; justify-content: space-between; padding: 24px 22px 32px; }
+.welcome { min-height: 100vh; min-height: 100svh; min-height: 100dvh; background-position: center; background-size: cover; color: #fff; display: flex; flex-direction: column; justify-content: space-between; padding: max(16px, env(safe-area-inset-top)) clamp(14px, 5vw, 22px) max(20px, env(safe-area-inset-bottom)); }
 .welcome-top, .topbar, .page-header, .section-heading, .draft-card, .mini-feature, .link-card { display: flex; align-items: center; justify-content: space-between; }
 .brand-mark, .mini-logo { font-family: 'Playfair Display', serif; font-size: 24px; letter-spacing: -.6px; color: #fff; }
 .brand-mark span, .mini-logo span { color: #d5ba85; }
@@ -17,8 +17,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(184, 147, 91
 .icon-button:hover { background: #eef1eb; transform: translateY(-1px); }
 .icon-button.light { color: #fff; border: 1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.12); }
 .icon-button.small { width: 38px; height: 38px; background: var(--cream); }
-.welcome-content { max-width: 390px; margin-top: auto; padding-top: 80px; }
-.welcome-content { width: 100%; text-align: center; }
+.welcome-content { width: 100%; max-width: 390px; min-width: 0; margin: auto auto 0; padding-top: clamp(24px, 7vh, 80px); text-align: center; }
 .eyebrow { margin: 0 0 9px; color: var(--gold); text-transform: uppercase; font-size: 10px; letter-spacing: 1.8px; font-weight: 700; }
 .light-text { color: #e1c78e; }
 .ornament { margin-right: 9px; font-size: 13px; }
@@ -47,8 +46,8 @@ h1, h2 { font-family: 'Playfair Display', serif; font-weight: 500; letter-spacin
 .love-divider-bottom::before, .love-divider-bottom::after { width: clamp(68px, 20vw, 120px); }
 .love-divider-bottom svg { width: 14px; height: 13px; }
 .welcome .pager { justify-content: center; }
-.welcome .glass-button { position: relative; width: min(100%, 360px); min-height: 68px; padding: 0 58px; border: 0; border-radius: 999px; background: linear-gradient(110deg, #f1d38f, #dfb966); box-shadow: 0 12px 28px rgba(24, 28, 17, .24); font-family: 'Playfair Display', serif; font-size: clamp(20px, 5.3vw, 26px); font-weight: 500; letter-spacing: -.3px; }
-.welcome .glass-button svg { position: absolute; right: 27px; width: 24px; height: 24px; }
+.welcome .glass-button { position: relative; width: min(100%, 360px); min-width: 0; min-height: clamp(56px, 8vh, 68px); padding: 0 clamp(38px, 10vw, 58px); border: 0; border-radius: 999px; background: linear-gradient(110deg, #f1d38f, #dfb966); box-shadow: 0 12px 28px rgba(24, 28, 17, .24); font-family: 'Playfair Display', serif; font-size: clamp(18px, 5.3vw, 26px); font-weight: 500; letter-spacing: -.3px; white-space: nowrap; flex-shrink: 0; }
+.welcome .glass-button svg { position: absolute; right: clamp(13px, 5vw, 27px); width: clamp(19px, 6vw, 24px); height: clamp(19px, 6vw, 24px); }
 .welcome .glass-button:hover { box-shadow: 0 15px 32px rgba(24, 28, 17, .3); }
 .welcome .glass-button:active { transform: translateY(1px) scale(.99); }
 .full { width: 100%; }
