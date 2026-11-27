@@ -1,4 +1,4 @@
-const CACHE_NAME = 'undanganku-shell-v5'
+const CACHE_NAME = 'undanganku-shell-v6'
 const APP_SHELL = [
   new URL('./', self.registration.scope).toString(),
   new URL('./index.html', self.registration.scope).toString(),
@@ -7,7 +7,7 @@ const APP_SHELL = [
   new URL('./icon-180.png', self.registration.scope).toString(),
   new URL('./icon-192.png', self.registration.scope).toString(),
   new URL('./icon-512.png', self.registration.scope).toString(),
-  new URL('./hero-couple.jpeg', self.registration.scope).toString(),
+  new URL('./hero-couple.webp', self.registration.scope).toString(),
   new URL('./heart-divider.png', self.registration.scope).toString(),
 ]
 
@@ -30,6 +30,19 @@ self.addEventListener('fetch', (event) => {
   const isAppShellAsset = requestUrl.origin === self.location.origin && /\.(?:svg|webmanifest)$/i.test(requestUrl.pathname)
 
   if (!isDocument && !isAppCode && !isImage && !isAppShellAsset) return
+
+  if (isImage && requestUrl.origin === self.location.origin) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME)
+      const cached = await cache.match(event.request)
+      if (cached) return cached
+
+      const response = await fetch(event.request)
+      if (response.ok) await cache.put(event.request, response.clone())
+      return response
+    })())
+    return
+  }
 
   event.respondWith((async () => {
     try {

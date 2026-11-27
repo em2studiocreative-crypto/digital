@@ -15,7 +15,7 @@ if ('serviceWorker' in navigator && !import.meta.env.DEV) {
   })
 }
 
-const heroImage = `${import.meta.env.BASE_URL}hero-couple.jpeg`
+const heroImage = `${import.meta.env.BASE_URL}hero-couple.webp`
 const heartDividerImage = `${import.meta.env.BASE_URL}heart-divider.png`
 
 const Icon = ({ name, size = 20, stroke = 'currentColor' }) => {
