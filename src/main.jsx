@@ -32,6 +32,7 @@ const Icon = ({ name, size = 20, stroke = 'currentColor', className = '' }) => {
     lock: <><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></>,
     eye: <><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.5"/></>,
     eyeOff: <><path d="m3 3 18 18"/><path d="M10.6 6.2A10.7 10.7 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3.1 3.5M6.2 6.3C3.5 8 2 12 2 12s3.5 6 10 6a10.7 10.7 0 0 0 3-.4"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></>,
+    palette: <><path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.4-3.4 1.6 1.6 0 0 1 1.1-2.7H18a3 3 0 0 0 3-3C21 7 17 3 12 3Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="15" cy="8" r="1"/></>,
     search: <><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,
     play: <path d="m9 6 9 6-9 6Z"/>,
     share: <><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.6M8.2 13.2l7.6 4.6"/></>,
@@ -382,9 +383,11 @@ function Home({ drafts, activeDraft, username, onCreate, onOpenTemplates, onOpen
         <Icon className="home-flow-arrow" name="arrow" size={15} />
         <div className="home-flow-step"><span className="home-flow-marker"><small>02</small><span className="home-flow-icon"><Icon name="file" size={17} /></span></span><strong>Isi data</strong><small>Nama &amp; acara</small></div>
         <Icon className="home-flow-arrow" name="arrow" size={15} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>03</small><span className="home-flow-icon"><Icon name="eye" size={17} /></span></span><strong>Pratinjau</strong><small>Cek hasilnya</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>03</small><span className="home-flow-icon"><Icon name="palette" size={17} /></span></span><strong>Atur warna</strong><small>Pilih nuansa</small></div>
         <Icon className="home-flow-arrow" name="arrow" size={15} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>04</small><span className="home-flow-icon"><Icon name="share" size={17} /></span></span><strong>Bagikan</strong><small>Kirim ke tamu</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>04</small><span className="home-flow-icon"><Icon name="eye" size={17} /></span></span><strong>Pratinjau</strong><small>Cek hasilnya</small></div>
+        <Icon className="home-flow-arrow" name="arrow" size={15} />
+        <div className="home-flow-step"><span className="home-flow-marker"><small>05</small><span className="home-flow-icon"><Icon name="share" size={17} /></span></span><strong>Bagikan</strong><small>Kirim ke tamu</small></div>
       </div>
     </section>
     <div className="section-heading home-section-heading"><div><p className="eyebrow">Simple, full color, dan lainnya</p><h2>Pilih konsep desain</h2></div><button className="text-button" onClick={onOpenTemplates}>Lihat semua <Icon name="arrow" size={15} /></button></div>
