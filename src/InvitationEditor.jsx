@@ -211,7 +211,6 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
           couple={couple}
           draft={form}
           opened={previewOpen}
-          onOpen={() => setPreviewOpen(true)}
           onMusicSettings={() => { setActivePanel('music'); setPanelOpen(true) }}
         />
       </div>

@@ -760,6 +760,100 @@
 .wedding-event-card h3 { margin: 9px 0; color: var(--invite-ink); font: 500 23px 'Playfair Display', serif; }
 .wedding-event-date { color: var(--invite-ink); font-size: 12px; font-weight: 700; }
 .wedding-event-venue { color: color-mix(in srgb, var(--invite-ink), transparent 25%); font-size: 12px; line-height: 1.65; }
+.wedding-section-sheet {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--invite-ink);
+  color: var(--invite-paper);
+  animation: wedding-sheet-in .28s ease;
+}
+
+.wedding-section-sheet.is-guest-preview {
+  position: fixed;
+  z-index: 8;
+  width: min(100%, 520px);
+  height: 100dvh;
+  margin: 0 auto;
+}
+
+@keyframes wedding-sheet-in {
+  from { opacity: .3; transform: translateY(8%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.wedding-section-sheet > h2 {
+  margin: 0;
+  padding: 22px 16px 8px;
+  color: var(--invite-accent);
+  font: 700 30px/1.2 'Playfair Display', serif;
+  text-align: center;
+}
+
+.wedding-sheet-content {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 8px 22px;
+  text-align: center;
+}
+
+.wedding-sheet-content > :first-child { margin-top: auto; }
+.wedding-sheet-content > :last-child { margin-bottom: auto; }
+.wedding-sheet-content p { margin: 0; white-space: pre-line; }
+.wedding-sheet-date { color: var(--invite-paper); font-size: 15px; font-weight: 600; }
+.wedding-sheet-event-list { display: grid; gap: 12px; }
+.wedding-sheet-event {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--invite-ink), white 8%);
+}
+
+.wedding-sheet-event > strong {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--invite-accent);
+  font: 700 22px/1.25 'Playfair Display', serif;
+}
+
+.wedding-sheet-event > p { line-height: 1.5; }
+.wedding-sheet-countdown { color: color-mix(in srgb, var(--invite-paper), transparent 28%); font-size: 14px; }
+.wedding-sheet-poem { font: italic 22px/1.5 'Playfair Display', serif; }
+.wedding-sheet-flourish { color: var(--invite-accent); font-size: 24px; }
+.wedding-sheet-link {
+  display: inline-flex;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--invite-accent);
+  color: var(--invite-ink);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.wedding-sheet-back {
+  width: min(60%, 320px);
+  min-height: 48px;
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 10px auto 18px;
+  border: 1px solid var(--invite-accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--invite-paper);
+  font-weight: 600;
+}
+
+.wedding-sheet-back:hover { background: color-mix(in srgb, var(--invite-accent), transparent 88%); }
+@media (prefers-reduced-motion: reduce) { .wedding-section-sheet { animation: none; } }
 .wedding-map-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 7px; color: var(--invite-ink); font-size: 11px; font-weight: 700; text-decoration-color: var(--invite-accent); text-underline-offset: 4px; }
 .wedding-closing { background: var(--invite-ink); color: #fffdf8; }
 .wedding-closing > p { color: rgba(255, 253, 248, .84); }

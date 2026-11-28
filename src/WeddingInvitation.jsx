@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 function formatDate(value) {
   if (!value) return ''
@@ -10,8 +10,10 @@ function makeMapsSearchLink(location, city) {
   return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : ''
 }
 
-export default function WeddingInvitation({ couple, draft, opened, onOpen, onMusicSettings, rsvp, onRsvp }) {
+export default function WeddingInvitation({ couple, draft, opened, onMusicSettings, rsvp, onRsvp }) {
   const musicPlayer = useRef(null)
+  const sectionTrigger = useRef(null)
+  const sectionBackButton = useRef(null)
   const [musicPlaying, setMusicPlaying] = useState(false)
   const palettes = {
     forest: ['#f3eddf', '#263c30', '#b8935b'],
@@ -20,6 +22,7 @@ export default function WeddingInvitation({ couple, draft, opened, onOpen, onMus
     rose: ['#f2e8e5', '#694d52', '#b78477'],
   }
   const [paper, ink, accent] = palettes[draft?.palette] || palettes.forest
+  const [activeSection, setActiveSection] = useState(null)
   const style = {
     '--invite-paper': paper,
     '--invite-ink': ink,
@@ -55,12 +58,80 @@ export default function WeddingInvitation({ couple, draft, opened, onOpen, onMus
     }
   }
   const openSection = (event, item) => {
-    if (!opened) {
-      event.preventDefault()
-      onOpen()
-      window.setTimeout(() => document.getElementById(`wedding-${item}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
-    }
+    event.preventDefault()
+    sectionTrigger.current = event.currentTarget
+    setActiveSection(item)
   }
+  const closeSection = () => {
+    setActiveSection(null)
+    sectionTrigger.current?.focus()
+  }
+  useEffect(() => {
+    if (!activeSection) return undefined
+    sectionBackButton.current?.focus()
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') closeSection()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [activeSection])
+  const sectionTitles = { acara: 'Acara', keluarga: 'Keluarga Mempelai', peta: 'Lokasi', doa: 'Doa dan Harapan' }
+  const eventDaysRemaining = () => {
+    if (!draft?.eventDate) return null
+    const eventDay = new Date(`${draft.eventDate}T00:00:00`)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return Math.round((eventDay.getTime() - today.getTime()) / 86400000)
+  }
+  const sectionContent = () => {
+    if (activeSection === 'acara') {
+      const daysRemaining = eventDaysRemaining()
+      return <>
+        <p className="wedding-sheet-date">{formatDate(draft?.eventDate) || 'Tanggal acara belum diatur'}</p>
+        <div className="wedding-sheet-event-list">{events.map((event) => <section className="wedding-sheet-event" key={event.title}>
+          <strong>{event.title}</strong>
+          {event.date && event.date !== draft?.eventDate && <p>{formatDate(event.date)}</p>}
+          <p>{event.time ? `Pukul ${event.time} WIB` : 'Waktu belum diatur'}</p>
+          <p>{event.venue || 'Tempat belum diatur'}</p>
+          {(event.address || draft?.city) && <p>{[event.address, draft?.city].filter(Boolean).join(', ')}</p>}
+        </section>)}</div>
+        {daysRemaining !== null && daysRemaining >= 0 && <p className="wedding-sheet-countdown">{daysRemaining ? `${daysRemaining} hari lagi` : 'Hari ini'}</p>}
+      </>
+    }
+
+    if (activeSection === 'keluarga') return <div className="wedding-sheet-event-list">
+      {[['Mempelai wanita', draft?.bride, draft?.brideParents], ['Mempelai pria', draft?.groom, draft?.groomParents]].map(([label, name, parents]) => <section className="wedding-sheet-event" key={label}>
+        <strong>{name || label}</strong>
+        <p>{parents || label}</p>
+      </section>)}
+    </div>
+
+    if (activeSection === 'peta') return <div className="wedding-sheet-event-list">
+      {events.map((event) => {
+        const mapLink = event.mapLink || makeMapsSearchLink(event.address || event.venue, draft?.city)
+        return <section className="wedding-sheet-event" key={event.title}>
+          <strong>{event.title}</strong>
+          <p>{event.venue || 'Tempat belum diatur'}</p>
+          {(event.address || draft?.city) && <p>{[event.address, draft?.city].filter(Boolean).join(', ')}</p>}
+          {mapLink && <a className="wedding-sheet-link" href={mapLink} target="_blank" rel="noreferrer">Buka di Google Maps</a>}
+        </section>
+      })}
+    </div>
+
+    if (activeSection === 'doa') return <>
+      <p className="wedding-sheet-poem">{draft?.poetic || 'Dua langkah yang dulu berjalan sendiri, kini sepakat pulang ke rumah yang sama.'}</p>
+      <p className="wedding-sheet-flourish" aria-hidden="true">✦</p>
+      <p>{draft?.prayer || 'Semoga hari bahagia ini menjadi awal perjalanan yang penuh kasih dan kebaikan.'}</p>
+      <p className="wedding-sheet-countdown">{couple}</p>
+    </>
+
+    return null
+  }
+  const sectionSheet = activeSection && <section className={`wedding-section-sheet ${opened ? 'is-guest-preview' : ''}`} role="dialog" aria-modal="true" aria-labelledby="wedding-sheet-title" style={style}>
+    <h2 id="wedding-sheet-title">{sectionTitles[activeSection] || 'Undangan'}</h2>
+    <div className="wedding-sheet-content">{sectionContent()}</div>
+    <button type="button" className="wedding-sheet-back" ref={sectionBackButton} onClick={closeSection}>Kembali</button>
+  </section>
 
   const designClasses = `layout-${draft?.layout || 'gate'} font-${draft?.fontStyle || 'anggun'} buttons-${draft?.buttonStyle || 'capsule'} ${draft?.fontColor ? 'has-font-color' : ''}`
   if (!opened) return <section className={`wedding-cover ${designClasses}`} style={style}>
@@ -89,6 +160,7 @@ export default function WeddingInvitation({ couple, draft, opened, onOpen, onMus
       </a>)}
     </nav>
     {draft?.musicData && <audio ref={musicPlayer} src={draft.musicData} loop preload="none" />}
+    {sectionSheet}
   </section>
 
   return <article className={`wedding-page ${designClasses}`} style={style}>
@@ -137,5 +209,6 @@ export default function WeddingInvitation({ couple, draft, opened, onOpen, onMus
       {events.map((event) => event.mapLink && <a key={event.title} className="wedding-map-link" href={event.mapLink} target="_blank" rel="noreferrer"><span aria-hidden="true">⌖</span> {event.title} · Buka peta</a>)}
     </section>
     {onRsvp && <section className="wedding-rsvp"><p className="wedding-kicker">KONFIRMASI KEHADIRAN</p><h2>Bisakah kami menantikan kehadiranmu?</h2>{rsvp ? <p className="rsvp-success">Terima kasih, konfirmasi tersimpan.</p> : <button className="primary-button full" onClick={onRsvp}>Konfirmasi kehadiran</button>}</section>}
+    {sectionSheet}
   </article>
 }
