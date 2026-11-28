@@ -5,3 +5,232 @@
 .countdown-row > div:nth-child(4) {
   display: none;
 }
+
+.editor-screen {
+  background:
+    radial-gradient(ellipse at 100% 0, rgba(184, 147, 91, .08), transparent 34%),
+    var(--cream);
+}
+
+.editor-screen .page-header {
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.editor-screen .page-header h2 {
+  color: var(--forest);
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.editor-screen .step-count {
+  color: #788176;
+}
+
+.editor-screen .screen-intro {
+  margin-bottom: 28px;
+}
+
+.editor-screen .screen-intro h1 {
+  max-width: 390px;
+  color: var(--forest);
+  font-size: clamp(34px, 8vw, 42px);
+  text-wrap: balance;
+}
+
+.editor-screen .screen-intro .template-helper {
+  max-width: 360px;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.editor-form {
+  display: grid;
+  gap: 14px;
+}
+
+.editor-form-section {
+  padding: 20px 17px 19px;
+  border: 1px solid rgba(38, 58, 47, .08);
+  border-radius: 18px;
+  background: rgba(255, 253, 248, .78);
+  box-shadow: 0 8px 24px rgba(38, 58, 47, .045);
+}
+
+.editor-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.editor-section-icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(184, 147, 91, .28);
+  border-radius: 12px;
+  background: #f2ecdc;
+  color: #8b7044;
+}
+
+.editor-section-heading .eyebrow {
+  margin: 0 0 4px;
+  color: #9a8054;
+  font-size: 9px;
+  letter-spacing: 1.35px;
+}
+
+.editor-section-heading h2 {
+  margin: 0 0 4px;
+  color: var(--forest);
+  font-family: 'Playfair Display', serif;
+  font-size: 23px;
+  line-height: 1.15;
+}
+
+.editor-section-heading p:last-child {
+  max-width: 290px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.editor-fields {
+  display: grid;
+  gap: 15px;
+}
+
+.editor-field {
+  min-width: 0;
+}
+
+.editor-screen .field-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 7px;
+  color: #39483e;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.editor-screen .field-label span {
+  color: #9a8054;
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.editor-input-wrap {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid #dfe3d8;
+  border-radius: 12px;
+  background: #fffefa;
+  color: #9a8054;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.editor-input-wrap:focus-within {
+  border-color: #b8935b;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(184, 147, 91, .13);
+}
+
+.editor-screen .text-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  margin: 0;
+  padding: 0 14px;
+  border: 1px solid #dfe3d8;
+  border-radius: 12px;
+  outline: 0;
+  background: #fffefa;
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.editor-screen .text-input::placeholder {
+  color: #a0a89f;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.editor-screen .text-input:focus {
+  border-color: #b8935b;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(184, 147, 91, .13);
+}
+
+.date-input-wrap .text-input {
+  min-height: 50px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink);
+}
+
+.date-input-wrap .text-input:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+.date-input-wrap .text-input::-webkit-calendar-picker-indicator {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+  opacity: .62;
+  filter: sepia(.35) saturate(.8);
+}
+
+.editor-data-error {
+  margin: 13px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #e8c9bd;
+  border-radius: 12px;
+  background: #fbf1ed;
+  line-height: 1.5;
+}
+
+.editor-bottom-action {
+  margin-top: 20px;
+  padding: 16px 0 28px;
+  border-top: 1px solid rgba(38, 58, 47, .12);
+}
+
+.editor-bottom-action .primary-button {
+  min-height: 58px;
+  border-radius: 16px;
+  background: var(--forest);
+  box-shadow: 0 10px 24px rgba(38, 58, 47, .15);
+  font-size: 14px;
+}
+
+.editor-bottom-action > p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  text-align: center;
+}
+
+@media (min-width: 560px) {
+  .editor-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+  }
+}

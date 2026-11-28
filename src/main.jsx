@@ -26,12 +26,14 @@ const Icon = ({ name, size = 20, stroke = 'currentColor', className = '' }) => {
     arrowLeft: <><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></>,
     arrowDown: <><path d="M12 5v14"/><path d="m18 13-6 6-6-6"/></>,
     back: <><path d="m15 18-6-6 6-6"/></>,
+    calendar: <><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M7.5 3v4M16.5 3v4M3.5 10h17"/></>,
     check: <><path d="m5 12 4 4L19 6"/></>,
     home: <><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M9 21v-7h6v7"/></>,
     grid: <><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></>,
     logout: <><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></>,
     user: <><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>,
     lock: <><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></>,
+    pin: <><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></>,
     eye: <><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.5"/></>,
     eyeOff: <><path d="m3 3 18 18"/><path d="M10.6 6.2A10.7 10.7 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3.1 3.5M6.2 6.3C3.5 8 2 12 2 12s3.5 6 10 6a10.7 10.7 0 0 0 3-.4"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></>,
     palette: <><path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.4-3.4 1.6 1.6 0 0 1 1.1-2.7H18a3 3 0 0 0 3-3C21 7 17 3 12 3Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="15" cy="8" r="1"/></>,
@@ -520,6 +522,7 @@ function Editor({ form, setForm, onBack, onNext }) {
     const missingField = requiredFields.find(([key]) => !form[key].trim())
     if (missingField) {
       setDataError(`Lengkapi ${missingField[1]} sebelum memilih desain.`)
+      document.getElementById(missingField[0])?.focus()
       return
     }
     onNext()
@@ -527,16 +530,28 @@ function Editor({ form, setForm, onBack, onNext }) {
   return <section className="plain-screen editor-screen">
     <Header title="Isi Data Undangan" onBack={onBack} action={<span className="step-count">1 dari 6</span>} />
     <div className="screen-intro"><p className="eyebrow">Langkah 1 dari 6</p><h1>Lengkapi detail hari bahagiamu.</h1><p className="template-helper">Isi semua data acara terlebih dahulu. Setelah itu, kamu bisa memilih desain yang paling sesuai.</p></div>
-    <div className="form-section">
-      <div className="section-heading"><div><p className="eyebrow">Identitas pasangan</p><h2>Mulai dari nama kalian</h2></div><Icon name="sparkle" size={21} /></div>
-      <label className="field-label" htmlFor="groom">Nama mempelai pria</label><input id="groom" className="text-input" value={form.groom} onChange={(e) => update('groom', e.target.value)} placeholder="Contoh: Bagas Pratama" />
-      <label className="field-label" htmlFor="bride">Nama mempelai wanita</label><input id="bride" className="text-input" value={form.bride} onChange={(e) => update('bride', e.target.value)} placeholder="Contoh: Andini Larasati" />
-      <label className="field-label" htmlFor="date">Tanggal acara</label><input id="date" className="text-input" type="date" value={form.eventDate} onChange={(e) => update('eventDate', e.target.value)} />
-      <label className="field-label" htmlFor="venue">Lokasi acara</label><input id="venue" className="text-input" value={form.venue} onChange={(e) => update('venue', e.target.value)} placeholder="Contoh: Gedung Kartika" />
-      <label className="field-label" htmlFor="city">Kota</label><input id="city" className="text-input" value={form.city} onChange={(e) => update('city', e.target.value)} placeholder="Contoh: Jakarta Selatan" />
+    <div className="editor-form">
+      <section className="editor-form-section" aria-labelledby="couple-section-title">
+        <div className="editor-section-heading"><span className="editor-section-icon"><Icon name="sparkle" size={19} /></span><div><p className="eyebrow">Bagian 01 · Identitas</p><h2 id="couple-section-title">Nama pasangan</h2><p>Siapa yang akan merayakan hari istimewa?</p></div></div>
+        <div className="editor-fields">
+          <div className="editor-field"><label className="field-label" htmlFor="groom">Nama mempelai pria <span>Wajib diisi</span></label><input id="groom" className="text-input" autoComplete="name" value={form.groom} onChange={(e) => update('groom', e.target.value)} placeholder="Contoh: Bagas Pratama" aria-required="true" /></div>
+          <div className="editor-field"><label className="field-label" htmlFor="bride">Nama mempelai wanita <span>Wajib diisi</span></label><input id="bride" className="text-input" autoComplete="name" value={form.bride} onChange={(e) => update('bride', e.target.value)} placeholder="Contoh: Andini Larasati" aria-required="true" /></div>
+        </div>
+      </section>
+      <section className="editor-form-section" aria-labelledby="event-section-title">
+        <div className="editor-section-heading"><span className="editor-section-icon"><Icon name="clock" size={19} /></span><div><p className="eyebrow">Bagian 02 · Waktu</p><h2 id="event-section-title">Kapan acaranya?</h2><p>Pilih tanggal untuk hari pernikahan kalian.</p></div></div>
+        <div className="editor-field"><label className="field-label" htmlFor="date">Tanggal acara <span>Wajib diisi</span></label><div className="editor-input-wrap date-input-wrap"><Icon name="calendar" size={19} /><input id="date" className="text-input" type="date" value={form.eventDate} onChange={(e) => update('eventDate', e.target.value)} aria-required="true" /></div></div>
+      </section>
+      <section className="editor-form-section" aria-labelledby="location-section-title">
+        <div className="editor-section-heading"><span className="editor-section-icon"><Icon name="pin" size={19} /></span><div><p className="eyebrow">Bagian 03 · Lokasi</p><h2 id="location-section-title">Di mana acaranya?</h2><p>Tambahkan nama tempat dan kota agar tamu mudah menemukan lokasi.</p></div></div>
+        <div className="editor-fields">
+          <div className="editor-field"><label className="field-label" htmlFor="venue">Nama tempat <span>Wajib diisi</span></label><input id="venue" className="text-input" autoComplete="organization" value={form.venue} onChange={(e) => update('venue', e.target.value)} placeholder="Contoh: Gedung Kartika" aria-required="true" /></div>
+          <div className="editor-field"><label className="field-label" htmlFor="city">Kota / kabupaten <span>Wajib diisi</span></label><input id="city" className="text-input" autoComplete="address-level2" value={form.city} onChange={(e) => update('city', e.target.value)} placeholder="Contoh: Jakarta Selatan" aria-required="true" /></div>
+        </div>
+      </section>
     </div>
-    {dataError && <p className="field-error" role="alert">{dataError}</p>}
-    <div className="bottom-action"><button className="primary-button full" onClick={handleNext}>Lanjut pilih desain <Icon name="arrow" size={17} /></button></div>
+    {dataError && <p className="field-error editor-data-error" role="alert">{dataError}</p>}
+    <div className="bottom-action editor-bottom-action"><button className="primary-button full" onClick={handleNext}>Lanjut pilih desain <Icon name="arrow" size={17} /></button><p>Data bisa kamu ubah lagi sebelum undangan dibagikan.</p></div>
   </section>
 }
 
