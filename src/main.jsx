@@ -6,6 +6,7 @@ import { supabase, usernameAuthEmail } from './lib/supabaseClient.js'
 
 const VenueMapPicker = lazy(() => import('./VenueMapPicker.jsx'))
 const WeddingInvitation = lazy(() => import('./WeddingInvitation.jsx'))
+const TemplateGallery = lazy(() => import('./TemplateGallery.jsx'))
 
 if ('serviceWorker' in navigator && import.meta.env.DEV) {
   navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister()))
@@ -86,6 +87,11 @@ const templates = [
   { id: 28, title: 'Bingkai Kenangan', type: 'Dengan Foto', art: 'photo', photoLayout: 'frame', colors: ['#e8d9d1', '#744f56', '#c59078'] },
   { id: 29, title: 'Ruang Cerita', type: 'Dengan Foto', art: 'photo', photoLayout: 'side', colors: ['#d7e0d4', '#40594d', '#a8855d'] },
   { id: 30, title: 'Arsip Cinta', type: 'Dengan Foto', art: 'photo', photoLayout: 'wide', colors: ['#e8d7b8', '#4c4a40', '#ba795e'] },
+  { id: 31, title: 'Cahaya Fajar', type: 'Islami', art: 'islamic', colors: ['#f4eddd', '#31533f', '#bd9860'] },
+  { id: 32, title: 'Taman Sakinah', type: 'Islami', art: 'islamic', colors: ['#e8eee1', '#45644e', '#c4a874'] },
+  { id: 33, title: 'Nusa Barakah', type: 'Islami', art: 'islamic', colors: ['#f1e4d2', '#704f3c', '#b48b55'] },
+  { id: 34, title: 'Serambi Madani', type: 'Islami', art: 'islamic', colors: ['#e6e9df', '#3c4d43', '#ad9366'] },
+  { id: 35, title: 'Pelita Kasih', type: 'Islami', art: 'islamic', colors: ['#efe4e0', '#684d53', '#bd997d'] },
 ]
 
 const photoLayoutLabels = {
@@ -103,7 +109,15 @@ const themeLabels = {
   Tradisional: 'Nusantara',
   Floral: 'Floral',
   'Dengan Foto': 'Foto Pasangan',
+  Islami: 'Islami',
 }
+
+const animationChoices = [
+  { id: 'none', label: 'Tanpa animasi', detail: 'Tampilan tenang' },
+  { id: 'glow', label: 'Cahaya lembut', detail: 'Ornamen berpendar' },
+  { id: 'drift', label: 'Daun berayun', detail: 'Hiasan bergerak pelan' },
+  { id: 'petals', label: 'Kelopak melayang', detail: 'Kelopak turun perlahan' },
+]
 
 const fontColorChoices = [
   { label: 'Hijau hutan', value: '#263c30' },
@@ -128,6 +142,7 @@ function App() {
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [selectedColor, setSelectedColor] = useState(0)
   const [selectedFontColor, setSelectedFontColor] = useState('#263c30')
+  const [selectedAnimation, setSelectedAnimation] = useState('none')
   const [activeNav, setActiveNav] = useState('home')
   const [form, setForm] = useState({
     groom: '',
@@ -272,6 +287,7 @@ function App() {
     setSelectedTemplate(null)
     setSelectedColor(0)
     setSelectedFontColor('#263c30')
+    setSelectedAnimation('none')
     setForm({
       groom: '',
       bride: '',
@@ -295,7 +311,7 @@ function App() {
     go('editor')
   }
   const saveDraft = () => {
-    const next = { ...form, template: selectedTemplate, color: selectedColor, fontColor: selectedFontColor, id: Date.now(), status: 'Draft' }
+    const next = { ...form, template: selectedTemplate, color: selectedColor, fontColor: selectedFontColor, animation: selectedAnimation, id: Date.now(), status: 'Draft' }
     setDrafts((items) => [next, ...items].slice(0, 2))
     setPreviewBackScreen('colors')
     go('preview')
@@ -324,6 +340,7 @@ function App() {
     setSelectedTemplate(draft.template || null)
     setSelectedColor(draft.color || 0)
     setSelectedFontColor(draft.fontColor || draft.template?.colors?.[1] || '#263c30')
+    setSelectedAnimation(draft.animation || (draft.template?.type === 'Islami' ? 'glow' : 'none'))
     setPreviewBackScreen('drafts')
     go('preview')
   }
@@ -357,11 +374,11 @@ function App() {
       {screen === 'welcome' && <Welcome onboarding={onboarding} setOnboarding={setOnboarding} onStart={startApp} />}
       {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} busy={authBusy} onSubmit={submitAuth} />}
       {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpen={go} />}
-      {screen === 'templates' && <TemplateGallery onBack={() => go('editor')} selected={selectedTemplate} setSelected={setSelectedTemplate} onUse={() => go('colors')} />}
+      {screen === 'templates' && <Suspense fallback={<div className="wedding-loading" role="status">Memuat pilihan template…</div>}><TemplateGallery onBack={() => go('editor')} selected={selectedTemplate} setSelected={(item) => { setSelectedTemplate(item); setSelectedAnimation(item.type === 'Islami' ? 'glow' : 'none') }} onUse={() => go('colors')} templates={templates} photoLayoutLabels={photoLayoutLabels} themeLabels={themeLabels} Icon={Icon} Header={Header} /></Suspense>}
       {screen === 'drafts' && <DraftsPage drafts={drafts} onBack={() => go('home')} onCreate={createDraft} onOpenDraft={openDraft} />}
       {screen === 'profile' && <ProfilePage username={currentUser} draftCount={drafts.length} onBack={() => go('home')} onLogout={logout} />}
       {screen === 'editor' && <Editor form={form} setForm={setForm} onBack={() => go('home')} onNext={() => go('templates')} />}
-      {screen === 'colors' && <ColorSelection template={selectedTemplate} form={form} photo={form.photo} setPhoto={(photo) => setForm((current) => ({ ...current, photo }))} selectedColor={selectedColor} setSelectedColor={setSelectedColor} selectedFontColor={selectedFontColor} setSelectedFontColor={setSelectedFontColor} onBack={() => go('templates')} onSave={saveDraft} />}
+      {screen === 'colors' && <ColorSelection template={selectedTemplate} form={form} photo={form.photo} setPhoto={(photo) => setForm((current) => ({ ...current, photo }))} selectedColor={selectedColor} setSelectedColor={setSelectedColor} selectedFontColor={selectedFontColor} setSelectedFontColor={setSelectedFontColor} selectedAnimation={selectedAnimation} setSelectedAnimation={setSelectedAnimation} onBack={() => go('templates')} onSave={saveDraft} />}
       {screen === 'preview' && <Preview draft={activeDraft} onBack={() => go(previewBackScreen)} onPublish={publish} />}
       {screen === 'payment' && <Payment duration={duration} setDuration={setDuration} status={paymentStatus} onBack={() => go('preview')} onSubmit={() => setPaymentStatus('waiting')} />}
       {screen === 'share' && <Share onBack={() => go('home')} />}
@@ -563,7 +580,7 @@ function ProfilePage({ username, draftCount, onBack, onLogout }) {
   </section>
 }
 
-function TemplateArt({ item, className = '', children, colorIndex = 0, photo = '', fontColor = '' }) {
+function TemplateArt({ item, className = '', children, colorIndex = 0, photo = '', fontColor = '', animation = 'none' }) {
   const art = item?.art || 'simple'
   const colors = item?.colors || ['#f3eddf', '#263c30', '#b8935b']
   const primaryIndex = colorIndex % colors.length
@@ -575,7 +592,7 @@ function TemplateArt({ item, className = '', children, colorIndex = 0, photo = '
   }
   const isPhotoTemplate = Boolean(item?.photoLayout)
   const content = children || <div className="art-copy"><span>UNDANGAN PERNIKAHAN</span><strong>Nama <i>&amp;</i> Nama</strong><small>12 · 12 · 26</small></div>
-  return <div className={`template-art art-${art} ${fontColor ? 'has-font-color' : ''} ${className}`} style={style}>
+  return <div className={`template-art art-${art} animation-${animation} ${fontColor ? 'has-font-color' : ''} ${className}`} style={style}>
     <span className="art-type">{themeLabels[item?.type] || item?.type || 'Klasik Editorial'}</span>
     {isPhotoTemplate && <div className="photo-frame" aria-hidden="true">
       {photo ? <img className="photo-image" src={photo} alt="" /> : <span className="photo-placeholder" />}
@@ -583,32 +600,6 @@ function TemplateArt({ item, className = '', children, colorIndex = 0, photo = '
     {isPhotoTemplate ? <div className="photo-copy">{content}</div> : content}
     <span className="art-privacy">{isPhotoTemplate ? photo ? 'Foto terpasang' : 'Unggah foto' : 'Tanpa foto'}</span>
   </div>
-}
-
-function TemplateGallery({ onBack, selected, setSelected, onUse }) {
-  const [filter, setFilter] = useState('Semua')
-  const filters = ['Semua', ...new Set(templates.map((item) => item.type))]
-  const shown = filter === 'Semua' ? templates : templates.filter((item) => item.type === filter)
-  return <section className="plain-screen"><Header title="Pilih Template" onBack={onBack} action={<button type="button" className="icon-button" aria-label="Cari"><Icon name="search" /></button>} /><div className="screen-intro"><p className="eyebrow">Langkah 2 dari 6</p><h1>Pilih bentuk undangan digitalmu.</h1><p className="template-helper">Setiap desain kini menampilkan contoh sampul dan halaman undangan di layar ponsel. Pilih gaya, lalu sesuaikan foto dan warnanya.</p></div><button type="button" className={selected ? 'selection-hint selected' : 'selection-hint'} onClick={() => { if (selected) onUse() }} aria-label={selected ? 'Lanjutkan mengatur desain' : 'Petunjuk memilih template'}><Icon name={selected ? 'check' : 'grid'} size={17} /><span>{selected ? `Template “${selected.title}” dipilih. Ketuk di sini untuk mengatur warna dan foto.` : 'Pilih gaya klasik editorial, warna ceria, botanical, Nusantara, floral, atau foto pasangan.'}</span></button><div className="filter-row">{filters.map((item) => <button type="button" key={item} className={filter === item ? 'filter active' : 'filter'} onClick={() => setFilter(item)}>{themeLabels[item]}</button>)}</div><div className="template-grid">{shown.map((item) => <TemplateCard key={item.id} item={item} selected={selected?.id === item.id} onClick={() => setSelected(item)} />)}</div>{selected && <div className="sticky-action"><div><span className="eyebrow">Template dipilih</span><strong>{selected.title}</strong><small>{selected.photoLayout ? `${photoLayoutLabels[selected.photoLayout]} · ` : 'Undangan digital · '}{selected.colors.length} pilihan warna</small></div><button type="button" className="primary-button" onClick={onUse}>Lanjut atur desain <Icon name="arrow" size={17} /></button></div>}</section>
-}
-
-function TemplateCard({ item, selected, compact, onClick }) {
-  const colors = item.colors
-  const style = {
-    '--art-primary': colors[0],
-    '--art-secondary': colors[1],
-    '--art-accent': colors[2],
-  }
-  return <button type="button" className={`template-card ${compact ? 'compact' : ''} ${selected ? 'selected' : ''}`} onClick={onClick} aria-pressed={selected}>
-    <div className={`template-showcase showcase-${item.art}`} style={style}>
-      <div className="showcase-device showcase-side showcase-left"><div className="showcase-topline" /><div className="showcase-image" /><div className="showcase-lines"><i /><i /><i /></div><span className="showcase-caption">OUR STORY</span></div>
-      <div className="showcase-device showcase-main"><div className="showcase-topline" /><div className="showcase-cover"><span>THE WEDDING OF</span><strong>Nama <i>&amp;</i> Nama</strong><small>Save the date</small><span className="showcase-cover-button">Buka Undangan</span></div></div>
-      <div className="showcase-device showcase-side showcase-right"><div className="showcase-topline" /><span className="showcase-monogram">N <i>&amp;</i> N</span><span className="showcase-caption">RANGKAIAN ACARA</span><div className="showcase-lines"><i /><i /><i /><i /></div><span className="showcase-pin">LOKASI</span></div>
-      <span className="showcase-label">{themeLabels[item.type]}</span>
-    </div>
-    {selected && <span className="selected-badge"><Icon name="check" size={14} /></span>}
-    <div className="template-meta"><div><h3>{item.title}</h3><p>{selected ? 'Dipilih · lanjutkan di bawah' : `${item.photoLayout ? photoLayoutLabels[item.photoLayout] : 'Sampul + halaman acara'} · ${item.colors.length} warna`}</p></div><span className="round-arrow"><Icon name="chevron" size={17} /></span></div>
-  </button>
 }
 
 function Editor({ form, setForm, onBack, onNext }) {
@@ -779,7 +770,7 @@ function Editor({ form, setForm, onBack, onNext }) {
   </section>
 }
 
-function ColorSelection({ template, form, photo, setPhoto, selectedColor, setSelectedColor, selectedFontColor, setSelectedFontColor, onBack, onSave }) {
+function ColorSelection({ template, form, photo, setPhoto, selectedColor, setSelectedColor, selectedFontColor, setSelectedFontColor, selectedAnimation, setSelectedAnimation, onBack, onSave }) {
   const [photoError, setPhotoError] = useState('')
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0]
@@ -808,7 +799,7 @@ function ColorSelection({ template, form, photo, setPhoto, selectedColor, setSel
   return <section className="plain-screen">
     <Header title="Atur Desain & Warna" onBack={onBack} action={<span className="step-count">3 dari 6</span>} />
     <div className="screen-intro"><p className="eyebrow">Satu sentuhan personal</p><h1>Sesuaikan desain pilihanmu.</h1><p className="template-helper">{template?.title || 'Template pilihan'} · atur warna dan foto sebelum melihat pratinjau.</p></div>
-    <TemplateArt item={template} photo={photo} colorIndex={selectedColor} fontColor={selectedFontColor} className="color-preview">
+    <TemplateArt item={template} photo={photo} colorIndex={selectedColor} fontColor={selectedFontColor} animation={selectedAnimation} className="color-preview">
       <div className={`editor-art-copy ${template?.photoLayout ? 'photo-preview-copy' : ''}`}>
         <span className="eyebrow">{template?.title || 'PRATINJAU UNDANGAN'}</span>
         <strong>{form.groom || 'Nama mempelai pria'} <i>&amp;</i> {form.bride || 'Nama mempelai wanita'}</strong>
@@ -834,6 +825,17 @@ function ColorSelection({ template, form, photo, setPhoto, selectedColor, setSel
       </label>
       {photo && <button type="button" className="text-button photo-remove" onClick={() => { setPhoto(''); setPhotoError('') }}>Hapus foto</button>}
       {photoError && <p className="field-error" role="alert">{photoError}</p>}
+    </div>}
+    {template?.type === 'Islami' && <div className="form-section animation-selection-section">
+      <div className="section-heading"><div><p className="eyebrow">Gerak ornamen</p><h2>Pilih animasi undangan</h2></div><Icon name="sparkle" size={21} /></div>
+      <p className="template-helper">Pilih gerakan halus untuk hiasan undangan. Animasi bisa dimatikan kapan saja.</p>
+      <div className="animation-picker" role="group" aria-label="Pilih animasi undangan">
+        {animationChoices.map((choice) => <button key={choice.id} type="button" className={`animation-choice ${selectedAnimation === choice.id ? 'active' : ''}`} onClick={() => setSelectedAnimation(choice.id)} aria-pressed={selectedAnimation === choice.id}>
+          <span className={`animation-sample animation-sample-${choice.id}`} aria-hidden="true"><i /><i /><i /></span>
+          <span className="animation-choice-copy"><strong>{choice.label}</strong><small>{choice.detail}</small></span>
+          <span className="animation-check" aria-hidden="true">{selectedAnimation === choice.id ? '✓' : ''}</span>
+        </button>)}
+      </div>
     </div>}
     <div className="form-section color-selection-section">
       <div className="section-heading"><div><p className="eyebrow">Pilihan warna</p><h2>Pilih nuansa undanganmu</h2></div></div>
