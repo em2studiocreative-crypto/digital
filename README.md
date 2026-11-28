@@ -22,6 +22,8 @@ Antarmuka menggunakan data lokal untuk rancangan undangan. Akun menggunakan Supa
 - status pembayaran manual
 - link undangan
 
+Bagian lokasi menyediakan pemilih peta interaktif OpenStreetMap, opsi lokasi perangkat, dan kolom link Google Maps; pin yang dipilih menghasilkan link Google Maps untuk pratinjau undangan. Peta memerlukan koneksi internet untuk memuat ubin peta.
+
 Tema **Dengan Foto** menyediakan lima tata letak dengan warna dan posisi foto berbeda. Foto JPG, PNG, atau WebP hingga 5 MB dapat dipilih pada editor; untuk saat ini foto dan rancangan hanya tersimpan sementara di memori aplikasi, sehingga tidak bertahan setelah halaman dimuat ulang dan belum ikut ke link undangan publik. Penyimpanan foto permanen memerlukan integrasi storage.
 
 Password dan sesi ditangani Supabase Auth, bukan disimpan di aplikasi. Nama ID dipetakan ke alamat internal pada domain `.invalid` (tidak dapat menerima email); indeks unik di database mencegah duplikasi. Karena tidak ada email/nomor yang dapat diverifikasi, pemulihan password mandiri tidak tersedia. Siapkan prosedur bantuan admin sebelum membuka pendaftaran publik.

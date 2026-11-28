@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
 import './overrides.css'
 import { supabase, usernameAuthEmail } from './lib/supabaseClient.js'
+
+const VenueMapPicker = lazy(() => import('./VenueMapPicker.jsx'))
 
 if ('serviceWorker' in navigator && import.meta.env.DEV) {
   navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister()))
@@ -232,7 +234,7 @@ function App() {
     if (drafts.length >= 2) return
     setSelectedTemplate(null)
     setSelectedColor(0)
-    setForm({ groom: '', bride: '', eventDate: '', venue: '', city: '', photo: '' })
+    setForm({ groom: '', bride: '', eventDate: '', venue: '', city: '', mapLink: '', latitude: null, longitude: null, photo: '' })
     setPaymentStatus('unpaid')
     go('editor')
   }
@@ -244,7 +246,7 @@ function App() {
   }
   const openDraft = (draft) => {
     setDrafts((items) => [draft, ...items.filter((item) => item.id !== draft.id)])
-    setForm({ groom: draft.groom || '', bride: draft.bride || '', eventDate: draft.eventDate || '', venue: draft.venue || '', city: draft.city || '', photo: draft.photo || '' })
+    setForm({ groom: draft.groom || '', bride: draft.bride || '', eventDate: draft.eventDate || '', venue: draft.venue || '', city: draft.city || '', mapLink: draft.mapLink || '', latitude: draft.latitude ?? null, longitude: draft.longitude ?? null, photo: draft.photo || '' })
     setSelectedTemplate(draft.template || null)
     setSelectedColor(draft.color || 0)
     setPreviewBackScreen('drafts')
@@ -401,7 +403,18 @@ function AuthScreen({ mode, setMode, username, setUsername, password, setPasswor
   </section>
 }
 
-function Header({ title, onBack, action }) { return <header className="page-header"><button className="icon-button" onClick={onBack} aria-label="Kembali"><Icon name="back" /></button><h2>{title}</h2>{action || <span className="header-spacer" />}</header> }
+function Header({ title, onBack, action }) {
+  return <header className="page-header branded-page-header">
+    <div className="page-header-brand">
+      <img src={appIcon} alt="" />
+      <h2>{title}</h2>
+    </div>
+    <div className="page-header-actions">
+      {action}
+      <button className="icon-button page-header-back" onClick={onBack} aria-label="Kembali"><Icon name="back" /></button>
+    </div>
+  </header>
+}
 
 function Home({ drafts, activeDraft, username, onCreate, onOpen }) {
   const displayName = username || 'Kamu'
@@ -507,9 +520,39 @@ function TemplateCard({ item, selected, compact, onClick }) { return <button typ
 
 function Editor({ form, setForm, onBack, onNext }) {
   const [dataError, setDataError] = useState('')
+  const [mapMessage, setMapMessage] = useState('')
   const update = (key, value) => {
     setForm((current) => ({ ...current, [key]: value }))
     setDataError('')
+  }
+  const selectMapLocation = (latitude, longitude) => {
+    setForm((current) => ({
+      ...current,
+      latitude,
+      longitude,
+      mapLink: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+    }))
+    setMapMessage('')
+    setDataError('')
+  }
+  const locateDevice = () => {
+    if (!navigator.geolocation) {
+      setMapMessage('Browser ini tidak mendukung akses lokasi. Silakan pilih titik langsung pada peta.')
+      return
+    }
+    setMapMessage('Sedang mencari lokasi perangkat…')
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => selectMapLocation(coords.latitude, coords.longitude),
+      (error) => {
+        const messages = {
+          1: 'Izin lokasi belum diberikan. Izinkan akses lokasi atau pilih titik pada peta.',
+          2: 'Lokasi perangkat tidak tersedia. Coba pilih titik pada peta.',
+          3: 'Pencarian lokasi terlalu lama. Coba lagi atau pilih titik pada peta.',
+        }
+        setMapMessage(messages[error.code] || 'Lokasi perangkat tidak dapat ditemukan. Silakan pilih titik pada peta.')
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    )
   }
   const handleNext = () => {
     const requiredFields = [
@@ -524,6 +567,17 @@ function Editor({ form, setForm, onBack, onNext }) {
       setDataError(`Lengkapi ${missingField[1]} sebelum memilih desain.`)
       document.getElementById(missingField[0])?.focus()
       return
+    }
+    if (form.mapLink.trim()) {
+      try {
+        const mapUrl = new URL(form.mapLink.trim())
+        const validHost = ['google.com', 'www.google.com', 'maps.google.com', 'maps.app.goo.gl', 'goo.gl'].includes(mapUrl.hostname)
+        if (!['http:', 'https:'].includes(mapUrl.protocol) || !validHost) throw new Error('URL peta tidak valid')
+      } catch {
+        setDataError('Masukkan link Google Maps yang valid, atau pilih titik lokasi pada peta.')
+        document.getElementById('map-link')?.focus()
+        return
+      }
     }
     onNext()
   }
@@ -547,6 +601,15 @@ function Editor({ form, setForm, onBack, onNext }) {
         <div className="editor-fields">
           <div className="editor-field"><label className="field-label" htmlFor="venue">Nama tempat <span>Wajib diisi</span></label><input id="venue" className="text-input" autoComplete="organization" value={form.venue} onChange={(e) => update('venue', e.target.value)} placeholder="Contoh: Gedung Kartika" aria-required="true" /></div>
           <div className="editor-field"><label className="field-label" htmlFor="city">Kota / kabupaten <span>Wajib diisi</span></label><input id="city" className="text-input" autoComplete="address-level2" value={form.city} onChange={(e) => update('city', e.target.value)} placeholder="Contoh: Jakarta Selatan" aria-required="true" /></div>
+        </div>
+        <div className="editor-map-settings">
+          <div className="editor-map-heading"><div><strong>Tandai lokasi di peta</strong><p>Ketuk peta untuk memasang pin. Kamu juga bisa memakai lokasi perangkat.</p></div><button type="button" className="map-locate-button" onClick={locateDevice}><Icon name="pin" size={16} /> Lokasi saya</button></div>
+          <Suspense fallback={<div className="venue-map map-loading" role="status">Memuat peta…</div>}>
+            <VenueMapPicker latitude={form.latitude} longitude={form.longitude} onPick={selectMapLocation} />
+          </Suspense>
+          {Number.isFinite(form.latitude) && Number.isFinite(form.longitude) && <p className="map-coordinates" role="status">Pin dipilih · {form.latitude.toFixed(5)}, {form.longitude.toFixed(5)}</p>}
+          {mapMessage && <p className="map-message" role="status">{mapMessage}</p>}
+          <div className="editor-field map-link-field"><label className="field-label" htmlFor="map-link">Link Google Maps <span>Opsional</span></label><input id="map-link" className="text-input" type="url" inputMode="url" autoComplete="url" value={form.mapLink} onChange={(e) => update('mapLink', e.target.value)} placeholder="Tempel link Google Maps di sini" /><small>{Number.isFinite(form.latitude) ? 'Link dibuat otomatis dari pin; kamu tetap bisa menggantinya.' : 'Tempel link Google Maps, atau pilih titik di peta untuk membuat link otomatis.'}</small></div>
         </div>
       </section>
     </div>
@@ -622,6 +685,7 @@ function Preview({ draft, onBack, onPublish }) {
         <p className="preview-venue">{draft?.venue || 'Gedung Pernikahan'}<br />{draft?.city || 'Jakarta'}</p>
       </div>
     </TemplateArt>
+    {draft?.mapLink && <a className="map-preview-link" href={draft.mapLink} target="_blank" rel="noreferrer"><Icon name="pin" size={18} /><span><strong>Buka lokasi acara</strong><small>{draft.venue}{draft.city ? ` · ${draft.city}` : ''}</small></span><Icon name="arrow" size={18} /></a>}
     <button className="live-preview-button" onClick={() => setLiveOpen(true)}><span className="play-badge"><Icon name="play" size={14} /></span><span><strong>Jalankan Live Preview</strong><small>Lihat persis seperti yang akan dibuka tamu</small></span><Icon name="chevron" size={18} /></button>
     <div className="preview-sections"><div className="mini-feature"><Icon name="clock" /><div><strong>Countdown</strong><span>Aktif di undangan</span></div><Icon name="check" size={17} /></div><div className="mini-feature"><Icon name="camera" /><div><strong>Galeri & musik</strong><span>Siap ditambahkan</span></div><Icon name="check" size={17} /></div><div className="mini-feature"><Icon name="file" /><div><strong>RSVP & ucapan</strong><span>Aktif untuk tamu</span></div><Icon name="check" size={17} /></div></div>
     <div className="bottom-action"><button className="primary-button full" onClick={onPublish}>Lanjut aktivasi <Icon name="arrow" size={17} /></button></div>
@@ -634,7 +698,7 @@ function LivePreview({ couple, draft, onClose }) {
   const [rsvp, setRsvp] = useState(false)
   return <div className="live-overlay">
     <div className="live-topbar"><div><span className="eyebrow light-text">Mode tamu</span><strong>Live Preview</strong></div><button className="icon-button light" onClick={onClose} aria-label="Tutup live preview"><Icon name="close" /></button></div>
-    {!opened ? <TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="live-cover"><div className="live-cover-content"><span className="eyebrow">UNDANGAN PERNIKAHAN{draft?.photo ? ' · FOTO' : ''}</span><h1>{couple}</h1><p>Dengan penuh kebahagiaan, kami mengundang Anda untuk hadir di hari istimewa kami.</p><button className="light-button" onClick={() => setOpened(true)}>Buka Undangan <Icon name="arrow" size={17} /></button></div></TemplateArt> : <div className="live-scroll"><TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="live-photo" /><div className="live-body"><span className="eyebrow">The wedding of</span><h1>{couple}</h1><p className="live-date">{draft?.eventDate || '12 Desember 2026'} · {draft?.venue || 'Gedung Pernikahan'}</p><div className="countdown-row"><div><strong>12</strong><span>Hari</span></div><div><strong>08</strong><span>Jam</span></div><div><strong>34</strong><span>Menit</span></div><div><strong>21</strong><span>Detik</span></div></div><div className="live-info"><h2>Menuju hari bahagia</h2><p>Mohon doa dan restu untuk perjalanan baru kami. Kehadiran Anda adalah hadiah yang berarti.</p><button className="outline-button full">Lihat lokasi <Icon name="arrow" size={16} /></button></div><div className="live-info"><h2>Konfirmasi kehadiran</h2>{rsvp ? <p className="rsvp-success"><Icon name="check" size={16} /> Terima kasih, konfirmasi tersimpan.</p> : <button className="primary-button full" onClick={() => setRsvp(true)}>Isi RSVP <Icon name="arrow" size={17} /></button>}</div></div></div>}
+    {!opened ? <TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="live-cover"><div className="live-cover-content"><span className="eyebrow">UNDANGAN PERNIKAHAN{draft?.photo ? ' · FOTO' : ''}</span><h1>{couple}</h1><p>Dengan penuh kebahagiaan, kami mengundang Anda untuk hadir di hari istimewa kami.</p><button className="light-button" onClick={() => setOpened(true)}>Buka Undangan <Icon name="arrow" size={17} /></button></div></TemplateArt> : <div className="live-scroll"><TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="live-photo" /><div className="live-body"><span className="eyebrow">The wedding of</span><h1>{couple}</h1><p className="live-date">{draft?.eventDate || '12 Desember 2026'} · {draft?.venue || 'Gedung Pernikahan'}</p><div className="countdown-row"><div><strong>12</strong><span>Hari</span></div><div><strong>08</strong><span>Jam</span></div><div><strong>34</strong><span>Menit</span></div><div><strong>21</strong><span>Detik</span></div></div><div className="live-info"><h2>Menuju hari bahagia</h2><p>Mohon doa dan restu untuk perjalanan baru kami. Kehadiran Anda adalah hadiah yang berarti.</p>{draft?.mapLink && <a className="outline-button full" href={draft.mapLink} target="_blank" rel="noreferrer">Lihat lokasi <Icon name="arrow" size={16} /></a>}</div><div className="live-info"><h2>Konfirmasi kehadiran</h2>{rsvp ? <p className="rsvp-success"><Icon name="check" size={16} /> Terima kasih, konfirmasi tersimpan.</p> : <button className="primary-button full" onClick={() => setRsvp(true)}>Isi RSVP <Icon name="arrow" size={17} /></button>}</div></div></div>}
   </div>
 }
 
