@@ -109,7 +109,7 @@ function App() {
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [selectedColor, setSelectedColor] = useState(0)
   const [activeNav, setActiveNav] = useState('home')
-  const [form, setForm] = useState({ groom: '', bride: '', eventDate: '', venue: '', city: '', photo: '' })
+  const [form, setForm] = useState({ groom: '', bride: '', eventDate: '', venue: '', city: '', address: '', photo: '' })
   const [previewBackScreen, setPreviewBackScreen] = useState('colors')
   const [duration, setDuration] = useState(90)
   const [paymentStatus, setPaymentStatus] = useState('unpaid')
@@ -234,7 +234,7 @@ function App() {
     if (drafts.length >= 2) return
     setSelectedTemplate(null)
     setSelectedColor(0)
-    setForm({ groom: '', bride: '', eventDate: '', venue: '', city: '', mapLink: '', latitude: null, longitude: null, photo: '' })
+    setForm({ groom: '', bride: '', eventDate: '', venue: '', city: '', address: '', mapLink: '', latitude: null, longitude: null, photo: '' })
     setPaymentStatus('unpaid')
     go('editor')
   }
@@ -246,7 +246,7 @@ function App() {
   }
   const openDraft = (draft) => {
     setDrafts((items) => [draft, ...items.filter((item) => item.id !== draft.id)])
-    setForm({ groom: draft.groom || '', bride: draft.bride || '', eventDate: draft.eventDate || '', venue: draft.venue || '', city: draft.city || '', mapLink: draft.mapLink || '', latitude: draft.latitude ?? null, longitude: draft.longitude ?? null, photo: draft.photo || '' })
+    setForm({ groom: draft.groom || '', bride: draft.bride || '', eventDate: draft.eventDate || '', venue: draft.venue || '', city: draft.city || '', address: draft.address || '', mapLink: draft.mapLink || '', latitude: draft.latitude ?? null, longitude: draft.longitude ?? null, photo: draft.photo || '' })
     setSelectedTemplate(draft.template || null)
     setSelectedColor(draft.color || 0)
     setPreviewBackScreen('drafts')
@@ -521,6 +521,7 @@ function TemplateCard({ item, selected, compact, onClick }) { return <button typ
 function Editor({ form, setForm, onBack, onNext }) {
   const [dataError, setDataError] = useState('')
   const [mapMessage, setMapMessage] = useState('')
+  const [mapSearchState, setMapSearchState] = useState('idle')
   const update = (key, value) => {
     setForm((current) => ({ ...current, [key]: value }))
     setDataError('')
@@ -535,6 +536,50 @@ function Editor({ form, setForm, onBack, onNext }) {
     setMapMessage('')
     setDataError('')
   }
+  useEffect(() => {
+    const address = form.address.trim()
+    const venue = form.venue.trim()
+    const city = form.city.trim()
+    if (address.length < 5 || !city) {
+      setMapSearchState('idle')
+      return undefined
+    }
+
+    const controller = new AbortController()
+    const timeoutId = window.setTimeout(async () => {
+      setMapSearchState('searching')
+      try {
+        const query = [address, venue, city, 'Indonesia'].filter(Boolean).join(', ')
+        const params = new URLSearchParams({ q: query, format: 'jsonv2', limit: '1', countrycodes: 'id' })
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+        })
+        if (!response.ok) throw new Error(`Layanan pencarian alamat merespons ${response.status}`)
+        const results = await response.json()
+        if (controller.signal.aborted) return
+        const result = results[0]
+        const latitude = Number(result?.lat)
+        const longitude = Number(result?.lon)
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          setMapSearchState('not-found')
+          return
+        }
+        selectMapLocation(latitude, longitude)
+        setMapSearchState('found')
+      } catch (error) {
+        if (controller.signal.aborted) return
+        console.error('Gagal mencari alamat pada peta:', error)
+        setMapSearchState('error')
+      }
+    }, 1200)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+      controller.abort()
+    }
+  }, [form.address, form.city, form.venue])
+
   const locateDevice = () => {
     if (!navigator.geolocation) {
       setMapMessage('Browser ini tidak mendukung akses lokasi. Silakan pilih titik langsung pada peta.')
@@ -561,6 +606,7 @@ function Editor({ form, setForm, onBack, onNext }) {
       ['eventDate', 'tanggal acara'],
       ['venue', 'lokasi acara'],
       ['city', 'kota'],
+      ['address', 'alamat acara'],
     ]
     const missingField = requiredFields.find(([key]) => !form[key].trim())
     if (missingField) {
@@ -599,11 +645,12 @@ function Editor({ form, setForm, onBack, onNext }) {
       <section className="editor-form-section" aria-labelledby="location-section-title">
         <div className="editor-section-heading"><span className="editor-section-icon"><Icon name="pin" size={19} /></span><div><p className="eyebrow">Bagian 03 · Lokasi</p><h2 id="location-section-title">Di mana acaranya?</h2><p>Tambahkan nama tempat dan kota agar tamu mudah menemukan lokasi.</p></div></div>
         <div className="editor-fields">
-          <div className={`editor-field ${form.venue.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="venue">Nama tempat <span>Wajib diisi</span></label><input id="venue" className="text-input" autoComplete="organization" value={form.venue} onChange={(e) => update('venue', e.target.value)} placeholder="Contoh: Gedung Kartika" aria-required="true" /></div>
           <div className={`editor-field ${form.city.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="city">Kota / kabupaten <span>Wajib diisi</span></label><input id="city" className="text-input" autoComplete="address-level2" value={form.city} onChange={(e) => update('city', e.target.value)} placeholder="Contoh: Jakarta Selatan" aria-required="true" /></div>
+          <div className={`editor-field ${form.venue.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="venue">Nama tempat <span>Wajib diisi</span></label><input id="venue" className="text-input" autoComplete="organization" value={form.venue} onChange={(e) => update('venue', e.target.value)} placeholder="Contoh: Gedung Kartika" aria-required="true" /></div>
+          <div className={`editor-field ${form.address.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="address">Alamat lengkap <span>Wajib diisi</span></label><input id="address" className="text-input" autoComplete="street-address" value={form.address} onChange={(e) => update('address', e.target.value)} placeholder="Contoh: Jl. Melati No. 12, Kebayoran Baru" aria-required="true" /><small>{mapSearchState === 'searching' ? 'Mencari alamat di peta…' : mapSearchState === 'found' ? 'Alamat ditemukan dan titik peta diperbarui.' : mapSearchState === 'not-found' ? 'Alamat tidak ditemukan. Gunakan Lokasi saya atau geser pin di peta.' : mapSearchState === 'error' ? 'Pencarian alamat gagal. Periksa koneksi, lalu gunakan Lokasi saya atau geser pin di peta.' : 'Peta akan mencari alamat setelah kamu berhenti mengetik.'}</small></div>
         </div>
         <div className="editor-map-settings">
-          <div className="editor-map-heading"><div><strong>Tandai lokasi di peta</strong><p>Ketuk peta untuk memasang pin. Kamu juga bisa memakai lokasi perangkat.</p></div><button type="button" className="map-locate-button" onClick={locateDevice}><Icon name="pin" size={16} /> Lokasi saya</button></div>
+          <div className="editor-map-heading"><div><strong>Tandai lokasi di peta</strong><p>Alamat akan dicari otomatis. Jika tidak ditemukan, gunakan Lokasi saya lalu geser pin, atau ketuk titik yang tepat pada peta.</p></div><button type="button" className="map-locate-button" onClick={locateDevice}><Icon name="pin" size={16} /> Lokasi saya</button></div>
           <Suspense fallback={<div className="venue-map map-loading" role="status">Memuat peta…</div>}>
             <VenueMapPicker latitude={form.latitude} longitude={form.longitude} onPick={selectMapLocation} />
           </Suspense>
@@ -682,10 +729,10 @@ function Preview({ draft, onBack, onPublish }) {
         <h1>{couple}</h1>
         <p>{draft?.eventDate ? new Date(draft.eventDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Sabtu, 12 Desember 2026'}</p>
         <div className="preview-divider" />
-        <p className="preview-venue">{draft?.venue || 'Gedung Pernikahan'}<br />{draft?.city || 'Jakarta'}</p>
+        <p className="preview-venue">{draft?.venue || 'Gedung Pernikahan'}<br />{draft?.address && <>{draft.address}<br /></>}{draft?.city || 'Jakarta'}</p>
       </div>
     </TemplateArt>
-    {draft?.mapLink && <a className="map-preview-link" href={draft.mapLink} target="_blank" rel="noreferrer"><Icon name="pin" size={18} /><span><strong>Buka lokasi acara</strong><small>{draft.venue}{draft.city ? ` · ${draft.city}` : ''}</small></span><Icon name="arrow" size={18} /></a>}
+    {draft?.mapLink && <a className="map-preview-link" href={draft.mapLink} target="_blank" rel="noreferrer"><Icon name="pin" size={18} /><span><strong>Buka lokasi acara</strong><small>{draft.address || draft.venue}{draft.city ? ` · ${draft.city}` : ''}</small></span><Icon name="arrow" size={18} /></a>}
     <button className="live-preview-button" onClick={() => setLiveOpen(true)}><span className="play-badge"><Icon name="play" size={14} /></span><span><strong>Jalankan Live Preview</strong><small>Lihat persis seperti yang akan dibuka tamu</small></span><Icon name="chevron" size={18} /></button>
     <div className="preview-sections"><div className="mini-feature"><Icon name="clock" /><div><strong>Countdown</strong><span>Aktif di undangan</span></div><Icon name="check" size={17} /></div><div className="mini-feature"><Icon name="camera" /><div><strong>Galeri & musik</strong><span>Siap ditambahkan</span></div><Icon name="check" size={17} /></div><div className="mini-feature"><Icon name="file" /><div><strong>RSVP & ucapan</strong><span>Aktif untuk tamu</span></div><Icon name="check" size={17} /></div></div>
     <div className="bottom-action"><button className="primary-button full" onClick={onPublish}>Lanjut aktivasi <Icon name="arrow" size={17} /></button></div>
@@ -698,7 +745,7 @@ function LivePreview({ couple, draft, onClose }) {
   const [rsvp, setRsvp] = useState(false)
   return <div className="live-overlay">
     <div className="live-topbar"><div><span className="eyebrow light-text">Mode tamu</span><strong>Live Preview</strong></div><button className="icon-button light" onClick={onClose} aria-label="Tutup live preview"><Icon name="close" /></button></div>
-    {!opened ? <TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="live-cover"><div className="live-cover-content"><span className="eyebrow">UNDANGAN PERNIKAHAN{draft?.photo ? ' · FOTO' : ''}</span><h1>{couple}</h1><p>Dengan penuh kebahagiaan, kami mengundang Anda untuk hadir di hari istimewa kami.</p><button className="light-button" onClick={() => setOpened(true)}>Buka Undangan <Icon name="arrow" size={17} /></button></div></TemplateArt> : <div className="live-scroll"><TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="live-photo" /><div className="live-body"><span className="eyebrow">The wedding of</span><h1>{couple}</h1><p className="live-date">{draft?.eventDate || '12 Desember 2026'} · {draft?.venue || 'Gedung Pernikahan'}</p><div className="countdown-row"><div><strong>12</strong><span>Hari</span></div><div><strong>08</strong><span>Jam</span></div><div><strong>34</strong><span>Menit</span></div><div><strong>21</strong><span>Detik</span></div></div><div className="live-info"><h2>Menuju hari bahagia</h2><p>Mohon doa dan restu untuk perjalanan baru kami. Kehadiran Anda adalah hadiah yang berarti.</p>{draft?.mapLink && <a className="outline-button full" href={draft.mapLink} target="_blank" rel="noreferrer">Lihat lokasi <Icon name="arrow" size={16} /></a>}</div><div className="live-info"><h2>Konfirmasi kehadiran</h2>{rsvp ? <p className="rsvp-success"><Icon name="check" size={16} /> Terima kasih, konfirmasi tersimpan.</p> : <button className="primary-button full" onClick={() => setRsvp(true)}>Isi RSVP <Icon name="arrow" size={17} /></button>}</div></div></div>}
+    {!opened ? <TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="live-cover"><div className="live-cover-content"><span className="eyebrow">UNDANGAN PERNIKAHAN{draft?.photo ? ' · FOTO' : ''}</span><h1>{couple}</h1><p>Dengan penuh kebahagiaan, kami mengundang Anda untuk hadir di hari istimewa kami.</p><button className="light-button" onClick={() => setOpened(true)}>Buka Undangan <Icon name="arrow" size={17} /></button></div></TemplateArt> : <div className="live-scroll"><TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="live-photo" /><div className="live-body"><span className="eyebrow">The wedding of</span><h1>{couple}</h1><p className="live-date">{draft?.eventDate || '12 Desember 2026'} · {draft?.venue || 'Gedung Pernikahan'}</p>{draft?.address && <p className="live-date">{draft.address}, {draft.city}</p>}<div className="countdown-row"><div><strong>12</strong><span>Hari</span></div><div><strong>08</strong><span>Jam</span></div><div><strong>34</strong><span>Menit</span></div><div><strong>21</strong><span>Detik</span></div></div><div className="live-info"><h2>Menuju hari bahagia</h2><p>Mohon doa dan restu untuk perjalanan baru kami. Kehadiran Anda adalah hadiah yang berarti.</p>{draft?.mapLink && <a className="outline-button full" href={draft.mapLink} target="_blank" rel="noreferrer">Lihat lokasi <Icon name="arrow" size={16} /></a>}</div><div className="live-info"><h2>Konfirmasi kehadiran</h2>{rsvp ? <p className="rsvp-success"><Icon name="check" size={16} /> Terima kasih, konfirmasi tersimpan.</p> : <button className="primary-button full" onClick={() => setRsvp(true)}>Isi RSVP <Icon name="arrow" size={17} /></button>}</div></div></div>}
   </div>
 }
 

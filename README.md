@@ -22,7 +22,7 @@ Antarmuka menggunakan data lokal untuk rancangan undangan. Akun menggunakan Supa
 - status pembayaran manual
 - link undangan
 
-Bagian lokasi menyediakan pemilih peta interaktif OpenStreetMap, opsi lokasi perangkat, dan kolom link Google Maps; pin yang dipilih menghasilkan link Google Maps untuk pratinjau undangan. Peta memerlukan koneksi internet untuk memuat ubin peta.
+Bagian lokasi menyediakan pencarian otomatis alamat melalui OpenStreetMap Nominatim, pemilih peta interaktif, opsi lokasi perangkat, dan kolom link Google Maps. Jika pencarian tidak menemukan alamat, pengguna dapat memakai lokasi perangkat, menggeser pin, atau mengetuk titik pada peta. Pin yang dipilih menghasilkan link Google Maps untuk pratinjau undangan. Pencarian alamat dan peta memerlukan koneksi internet; hasilnya menggunakan Nominatim, bukan Google Geocoding API.
 
 Tema **Dengan Foto** menyediakan lima tata letak dengan warna dan posisi foto berbeda. Foto JPG, PNG, atau WebP hingga 5 MB dapat dipilih pada editor; untuk saat ini foto dan rancangan hanya tersimpan sementara di memori aplikasi, sehingga tidak bertahan setelah halaman dimuat ulang dan belum ikut ke link undangan publik. Penyimpanan foto permanen memerlukan integrasi storage.
 

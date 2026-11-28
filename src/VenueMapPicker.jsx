@@ -20,6 +20,22 @@ function MapClickHandler({ onPick }) {
   return null
 }
 
+function DraggableVenueMarker({ center, onPick }) {
+  return <Marker
+    position={center}
+    icon={mapMarkerIcon}
+    keyboard
+    title="Lokasi acara yang dipilih"
+    draggable
+    eventHandlers={{
+      dragend(event) {
+        const { lat, lng } = event.target.getLatLng()
+        onPick(lat, lng)
+      },
+    }}
+  />
+}
+
 function MapViewportUpdater({ center }) {
   const map = useMap()
   useEffect(() => {
@@ -39,7 +55,7 @@ export default function VenueMapPicker({ latitude, longitude, onPick }) {
     <MapClickHandler onPick={onPick} />
     {hasLocation && <>
       <MapViewportUpdater center={center} />
-      <Marker position={center} icon={mapMarkerIcon} keyboard title="Lokasi acara yang dipilih" />
+      <DraggableVenueMarker center={center} onPick={onPick} />
     </>}
   </MapContainer>
 }
