@@ -40,6 +40,7 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
   const [mapError, setMapError] = useState('')
   const [uploadError, setUploadError] = useState('')
   const [formError, setFormError] = useState('')
+  const [saving, setSaving] = useState(false)
   const photoInput = useRef(null)
   const audioInput = useRef(null)
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }))
@@ -71,13 +72,23 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
       setShareError('Pesan tidak dapat disalin. Pilih teks pesan lalu salin secara manual.')
     }
   }
-  const save = () => {
+  const save = async () => {
+    if (saving) return
     setFormError('')
-    if (onSave() === false) {
-      setFormError('Batas rancangan tercapai. Kembali ke beranda dan buka rancangan untuk mengedit.')
-      return
+    setSaving(true)
+    try {
+      const saved = await onSave()
+      if (saved === false) {
+        setFormError('Batas rancangan tercapai. Kembali ke beranda dan buka rancangan untuk mengedit.')
+        return
+      }
+      setPanelOpen(false)
+    } catch (error) {
+      console.error('Gagal menyimpan rancangan:', error)
+      setFormError(error instanceof Error ? error.message : 'Rancangan tidak dapat disimpan. Coba lagi.')
+    } finally {
+      setSaving(false)
     }
-    setPanelOpen(false)
   }
 
   useEffect(() => {
@@ -193,7 +204,7 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
 
   return <section className="studio-screen" style={{ '--invite-paper': palette.paper, '--invite-ink': palette.ink, '--invite-accent': palette.accent, '--invite-font-color': form.fontColor || palette.ink }}>
     <div className="studio-canvas">
-      <button type="button" className="studio-back-button" onClick={onBack} aria-label="Kembali ke beranda"><Icon name="back" size={19} /></button>
+      <button type="button" className="studio-back-button" onClick={onBack} disabled={saving} aria-label="Kembali ke beranda"><Icon name="back" size={19} /></button>
       {previewOpen && <header className="live-topbar studio-preview-topbar"><span className="live-mode-label">Pratinjau tamu</span><button className="icon-button" onClick={() => setPreviewOpen(false)} aria-label="Tutup pratinjau"><Icon name="close" /></button></header>}
       <div className="live-scroll studio-live-scroll">
         <WeddingInvitation
@@ -213,11 +224,11 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
       <button type="button" className="live-share-button" onClick={openShare}><Icon name="share" size={18} /><span>Bagikan</span></button>
     </nav>}
 
-    {panelOpen && <div className="studio-panel-overlay" role="presentation" onClick={() => setPanelOpen(false)}>
+    {panelOpen && <div className="studio-panel-overlay" role="presentation" onClick={() => { if (!saving) setPanelOpen(false) }}>
       <section className="studio-settings-panel" role="dialog" aria-modal="true" aria-labelledby="studio-panel-title" onClick={(event) => event.stopPropagation()}>
         <header className="studio-panel-header">
           <div><p className="eyebrow">Undanganmu</p><h1 id="studio-panel-title">Atur undangan</h1></div>
-          <button type="button" className="unified-save-button" onClick={save}>Selesai</button>
+          <button type="button" className="unified-save-button" onClick={save} disabled={saving}>{saving ? 'Menyimpan…' : 'Selesai'}</button>
         </header>
         <div className="unified-panel-tabs" role="tablist" aria-label="Pengaturan undangan">
         {[

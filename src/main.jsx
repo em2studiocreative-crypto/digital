@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './styles.css'
 import './overrides.css'
 import { supabase, usernameAuthEmail } from './lib/supabaseClient.js'
+import { fetchInvitationDrafts, saveInvitationDraft } from './lib/invitationDrafts.js'
 
 const VenueMapPicker = lazy(() => import('./VenueMapPicker.jsx'))
 const WeddingInvitation = lazy(() => import('./WeddingInvitation.jsx'))
@@ -75,15 +76,18 @@ function App() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [currentUser, setCurrentUser] = useState('')
+  const [userId, setUserId] = useState(null)
   const [authMessage, setAuthMessage] = useState('')
   const [authBusy, setAuthBusy] = useState(false)
   const [drafts, setDrafts] = useState([])
+  const [draftsLoading, setDraftsLoading] = useState(false)
+  const [draftsError, setDraftsError] = useState('')
+  const [draftLoadVersion, setDraftLoadVersion] = useState(0)
   const [editingDraftId, setEditingDraftId] = useState(null)
   const [draftLimitMessage, setDraftLimitMessage] = useState('')
   const [editorInitialPreview, setEditorInitialPreview] = useState(false)
   const [form, setForm] = useState({ ...emptyForm })
 
-  const activeDraft = useMemo(() => drafts[0], [drafts])
   const go = (next) => {
     hasNavigated.current = true
     setScreen(next)
@@ -100,8 +104,16 @@ function App() {
 
     let active = true
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!active || !session) return
-      setCurrentUser(session.user.user_metadata?.username || '')
+      if (!active) return
+      setUserId(session?.user.id || null)
+      setCurrentUser(session?.user.user_metadata?.username || '')
+      if (!session) {
+        setDrafts([])
+        setDraftsError('')
+        setDraftsLoading(false)
+      } else {
+        setDraftsLoading(true)
+      }
     })
 
     supabase.auth.getSession().then(({ data, error }) => {
@@ -111,6 +123,8 @@ function App() {
         setAuthMessage('Sesi akun tidak dapat dimuat. Silakan coba masuk kembali.')
       } else if (data.session) {
         setCurrentUser(data.session.user.user_metadata?.username || '')
+        setUserId(data.session.user.id)
+        setDraftsLoading(true)
         if (!hasNavigated.current) setScreen('home')
       }
     }).catch((error) => {
@@ -124,6 +138,30 @@ function App() {
       subscription.unsubscribe()
     }
   }, [])
+
+  useEffect(() => {
+    if (!userId || !supabase) {
+      setDrafts([])
+      setDraftsLoading(false)
+      setDraftsError('')
+      return undefined
+    }
+
+    let active = true
+    setDraftsLoading(true)
+    setDraftsError('')
+    setDrafts([])
+    fetchInvitationDrafts(supabase, userId).then((loadedDrafts) => {
+      if (active) setDrafts(loadedDrafts)
+    }).catch((error) => {
+      if (!active) return
+      setDraftsError(error instanceof Error ? error.message : 'Rancangan tidak dapat dimuat. Coba lagi.')
+    }).finally(() => {
+      if (active) setDraftsLoading(false)
+    })
+
+    return () => { active = false }
+  }, [userId, draftLoadVersion])
 
   const startApp = () => {
     setAuthMode('login')
@@ -192,6 +230,8 @@ function App() {
         return
       }
       setCurrentUser(data.user.user_metadata?.username || id)
+      setUserId(data.user.id)
+      setDraftsLoading(true)
       setPassword('')
       go('home')
     } catch (error) {
@@ -202,6 +242,10 @@ function App() {
     }
   }
   const createDraft = () => {
+    if (draftsLoading || draftsError) {
+      setDraftLimitMessage('Pastikan rancangan tersimpan sudah berhasil dimuat sebelum membuat rancangan baru.')
+      return
+    }
     if (drafts.length >= 2) {
       setDraftLimitMessage('Kamu sudah memiliki 2 rancangan. Buka salah satunya untuk mengubah data.')
       return
@@ -212,12 +256,15 @@ function App() {
     setForm({ ...emptyForm })
     go('editor')
   }
-  const saveDraft = () => {
+  const saveDraft = async () => {
     if (!editingDraftId && drafts.length >= 2) {
       setDraftLimitMessage('Batas 2 rancangan tercapai. Kembali ke beranda dan buka rancangan untuk mengedit.')
       return false
     }
-    const next = { ...form, id: editingDraftId || Date.now(), status: 'Draft' }
+    if (!supabase || !userId) {
+      throw new Error('Sesi Supabase tidak ditemukan. Masuk kembali sebelum menyimpan rancangan.')
+    }
+    const next = await saveInvitationDraft(supabase, userId, editingDraftId, form)
     setDrafts((items) => [next, ...items.filter((item) => item.id !== next.id)].slice(0, 2))
     setEditingDraftId(next.id)
     setDraftLimitMessage('')
@@ -235,7 +282,7 @@ function App() {
     <main className={`app-shell ${screen === 'welcome' ? 'welcome-app-shell' : ''} ${screen === 'login' ? 'auth-app-shell' : ''} ${screen === 'home' ? 'home-app-shell' : ''} ${screen === 'editor' ? 'studio-app-shell' : ''}`}>
       {screen === 'welcome' && <Welcome onboarding={onboarding} setOnboarding={setOnboarding} onStart={startApp} />}
       {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} busy={authBusy} onSubmit={submitAuth} />}
-      {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpen={() => activeDraft && openDraft(activeDraft, true)} draftLimitMessage={draftLimitMessage} />}
+      {screen === 'home' && <Home drafts={drafts} username={currentUser} onCreate={createDraft} onOpen={(draft) => openDraft(draft, true)} draftLimitMessage={draftLimitMessage} draftsLoading={draftsLoading} draftsError={draftsError} onRetryDrafts={() => setDraftLoadVersion((version) => version + 1)} />}
       {screen === 'editor' && <Suspense fallback={<div className="wedding-loading" role="status">Memuat editor undangan…</div>}><InvitationEditor form={form} setForm={setForm} onBack={() => go('home')} onSave={saveDraft} initialPreview={editorInitialPreview} Icon={Icon} VenueMapPicker={VenueMapPicker} /></Suspense>}
       {screen === 'home' && <BottomNav active="home" setActive={() => go('home')} />}
     </main>
@@ -360,7 +407,7 @@ function Header({ title, onBack, action }) {
   </header>
 }
 
-function Home({ drafts, activeDraft, username, onCreate, onOpen, draftLimitMessage }) {
+function Home({ drafts, username, onCreate, onOpen, draftLimitMessage, draftsLoading, draftsError, onRetryDrafts }) {
   const displayName = username || 'Kamu'
   return <section className="plain-screen home-screen">
     <header className="home-topbar">
@@ -397,9 +444,12 @@ function Home({ drafts, activeDraft, username, onCreate, onOpen, draftLimitMessa
     </section>
     <section className="home-drafts-panel">
       <span className="home-drafts-shimmer" aria-hidden="true" />
-      <div className="section-heading draft-heading home-section-heading"><div><p className="eyebrow">Disimpan untuk nanti</p><h2>Rancanganmu</h2></div><span className="count-pill">{drafts.length}/2</span></div>
+      <div className="section-heading draft-heading home-section-heading"><div><p className="eyebrow">Disimpan untuk nanti</p><h2>Rancanganmu</h2></div><span className="count-pill">{draftsLoading ? '…' : `${drafts.length}/2`}</span></div>
       {draftLimitMessage && <p className="field-error" role="alert">{draftLimitMessage}</p>}
-      {activeDraft ? <div className="draft-card"><InvitationThumbnail draft={activeDraft} className="draft-thumb" /><div className="draft-copy"><h3>{activeDraft.groomNickname || activeDraft.groom || 'Rancangan Undangan'} <span>&amp;</span> {activeDraft.brideNickname || activeDraft.bride || 'Pasangan'}</h3><p>Editor undangan · tersimpan sebagai rancangan</p><button className="outline-button" onClick={() => onOpen('preview')}>Lihat pratinjau</button></div></div> : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada rancangan</h3><p>Mulai dengan melengkapi data acara dan tampilan undangan.</p><button className="primary-button" onClick={onCreate}>Buat rancangan pertama <Icon name="arrow" size={17} /></button></div>}
+      {draftsLoading ? <p className="home-drafts-status" role="status">Memuat rancangan tersimpan…</p>
+        : draftsError ? <div className="home-drafts-error" role="alert"><p>{draftsError}</p><button type="button" className="outline-button" onClick={onRetryDrafts}>Coba lagi</button></div>
+          : drafts.length ? <div className="home-drafts-list">{drafts.map((draft) => <div className="draft-card" key={draft.id}><InvitationThumbnail draft={draft} className="draft-thumb" /><div className="draft-copy"><h3>{draft.groomNickname || draft.groom || 'Rancangan Undangan'} <span>&amp;</span> {draft.brideNickname || draft.bride || 'Pasangan'}</h3><p>Editor undangan · tersimpan di Supabase</p><button className="outline-button" onClick={() => onOpen(draft)}>Lihat pratinjau</button></div></div>)}</div>
+            : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada rancangan</h3><p>Mulai dengan melengkapi data acara dan tampilan undangan.</p><button className="primary-button" onClick={onCreate}>Buat rancangan pertama <Icon name="arrow" size={17} /></button></div>}
     </section>
   </section>
 }

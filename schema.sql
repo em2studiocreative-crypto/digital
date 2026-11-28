@@ -1,5 +1,7 @@
 -- UndanganKu / Supabase schema
--- Jalankan di Supabase SQL Editor.
+-- Hanya untuk inisialisasi project Supabase baru yang belum memiliki skema UndanganKu.
+-- Untuk project yang sudah memiliki tabel/tipe, jangan jalankan ulang file ini;
+-- gunakan migrasi baru di supabase/migrations secara berurutan.
 -- Supabase Auth tetap menjadi sumber identitas utama melalui auth.users.
 
 create extension if not exists pgcrypto;
@@ -280,6 +282,37 @@ alter table public.payments enable row level security;
 alter table public.rsvps enable row level security;
 alter table public.guest_messages enable row level security;
 alter table public.invitation_analytics enable row level security;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'invitation-media',
+  'invitation-media',
+  true,
+  10485760,
+  array['image/jpeg', 'image/png', 'image/webp', 'audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/aac', 'audio/ogg', 'audio/wav', 'audio/x-wav', 'audio/webm']
+);
+
+create policy "invitation media: public read"
+  on storage.objects for select to anon, authenticated
+  using (bucket_id = 'invitation-media');
+
+create policy "invitation media: owner upload"
+  on storage.objects for insert to authenticated
+  with check (
+    bucket_id = 'invitation-media'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "invitation media: owner update"
+  on storage.objects for update to authenticated
+  using (
+    bucket_id = 'invitation-media'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  )
+  with check (
+    bucket_id = 'invitation-media'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
 
 create policy "profiles: own read"
   on public.profiles for select to authenticated
