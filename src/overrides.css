@@ -2812,3 +2812,235 @@
   .wedding-cover-menu a { min-height: 43px; }
   .live-toolbar button { min-height: 52px; }
 }
+
+.app-shell.studio-app-shell {
+  width: min(100%, 600px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 0;
+  background: #eeefe9;
+  box-shadow: none;
+}
+
+.studio-screen {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: #eeefe9;
+}
+
+.studio-canvas {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.studio-live-scroll {
+  min-height: 100%;
+}
+
+.studio-live-scroll.is-full-preview {
+  height: 100dvh;
+  padding-top: max(56px, calc(env(safe-area-inset-top) + 48px));
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+}
+
+.studio-preview-topbar {
+  z-index: 7;
+}
+
+.studio-back-button {
+  position: absolute;
+  z-index: 7;
+  top: max(18px, env(safe-area-inset-top));
+  left: max(18px, calc((100% - 540px) / 2));
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(255, 253, 248, .2);
+  border-radius: 50%;
+  background: rgba(18, 45, 37, .82);
+  color: #f5f0e2;
+  transition: background .2s ease, transform .2s ease;
+}
+
+.studio-back-button:hover {
+  background: rgba(18, 45, 37, .98);
+  transform: translateX(-2px);
+}
+
+.studio-panel-overlay {
+  position: fixed;
+  z-index: 12;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(20, 32, 25, .48);
+  animation: studio-overlay-in .2s ease both;
+}
+
+.studio-settings-panel {
+  display: flex;
+  width: min(100%, 600px);
+  max-height: min(92dvh, 960px);
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 26px 26px 0 0;
+  background: #f7f5ef;
+  color: var(--forest);
+  box-shadow: 0 -16px 48px rgba(20, 32, 25, .2);
+  animation: studio-panel-in .24s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.studio-panel-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-height: 82px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 22px 10px;
+  border-bottom: 1px solid rgba(38, 60, 48, .1);
+  background: rgba(247, 245, 239, .96);
+}
+
+.studio-panel-header .eyebrow {
+  margin-bottom: 5px;
+  font-size: 8px;
+}
+
+.studio-panel-header h1 {
+  margin: 0;
+  color: var(--forest);
+  font: 500 24px/1.1 'Playfair Display', serif;
+}
+
+.studio-panel-header .unified-save-button {
+  width: 84px;
+  min-height: 40px;
+  flex: 0 0 auto;
+}
+
+.studio-settings-panel .unified-panel-tabs {
+  z-index: 1;
+  top: 0;
+  flex: 0 0 auto;
+  margin: 12px 16px 0;
+}
+
+.studio-panel-content {
+  min-height: 0;
+  overflow: auto;
+  padding: 0 16px max(16px, env(safe-area-inset-bottom));
+  overscroll-behavior: contain;
+}
+
+.studio-panel-content .unified-panel {
+  width: min(100%, 680px);
+  margin: 0 auto;
+}
+
+.studio-settings-panel .unified-section {
+  border-color: rgba(38, 60, 48, .08);
+  box-shadow: 0 5px 16px rgba(38, 60, 48, .035);
+}
+
+.studio-share-dialog {
+  width: min(100%, 600px);
+  max-height: 90dvh;
+  overflow: auto;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+
+.studio-share-dialog h2 {
+  margin: 0 0 20px;
+}
+
+.studio-share-field {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 15px;
+  color: #48554a;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.studio-share-field input,
+.studio-share-field textarea {
+  width: 100%;
+  min-height: 45px;
+  padding: 11px 12px;
+  border: 1px solid #dfe5dc;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.studio-share-field textarea {
+  min-height: 132px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.studio-share-note,
+.studio-share-status {
+  margin: 0 0 14px;
+  color: #737b72;
+  font-size: 11px;
+}
+
+.studio-share-status {
+  color: #2e694d;
+}
+
+.studio-share-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+}
+
+.studio-share-actions button {
+  width: 100%;
+}
+
+@keyframes studio-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes studio-panel-in {
+  from { transform: translateY(28px); }
+  to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-panel-overlay,
+  .studio-settings-panel {
+    animation: none;
+  }
+}
+
+@media (min-width: 700px) {
+  .app-shell.studio-app-shell {
+    min-height: 100dvh;
+    margin: 0 auto;
+    border-radius: 0;
+  }
+}
+
+.bottom-nav.home-only-nav {
+  grid-template-columns: 1fr;
+}
+
+.studio-live-scroll:not(.is-full-preview) .wedding-cover {
+  height: min(820px, calc(100dvh - 142px - env(safe-area-inset-bottom)));
+}

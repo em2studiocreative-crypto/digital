@@ -100,7 +100,7 @@ create trigger templates_set_updated_at
 create table public.invitation_drafts (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references public.profiles(id) on delete cascade,
-  template_id uuid not null references public.templates(id) on delete restrict,
+  template_id uuid references public.templates(id) on delete set null,
   status public.draft_status not null default 'draft',
   groom_name text,
   bride_name text,
@@ -113,6 +113,9 @@ create table public.invitation_drafts (
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+comment on column public.invitation_drafts.content is
+  'Data editor dalam JSON: nama panggilan, jadwal, keluarga, doa, tamu, foto_url, music_url, palet, warna font, tata letak, gaya huruf, gaya tombol, urutan menu, dan koordinat lokasi. Jangan simpan data URI/base64 untuk media; gunakan Supabase Storage.';
 
 create index invitation_drafts_owner_idx on public.invitation_drafts(owner_id);
 create index invitation_drafts_status_idx on public.invitation_drafts(status);
@@ -151,7 +154,7 @@ create table public.invitations (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references public.profiles(id) on delete cascade,
   draft_id uuid not null unique references public.invitation_drafts(id) on delete restrict,
-  template_id uuid not null references public.templates(id) on delete restrict,
+  template_id uuid references public.templates(id) on delete set null,
   slug text not null unique check (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
   status public.invitation_status not null default 'awaiting_payment',
   content jsonb not null default '{}'::jsonb,

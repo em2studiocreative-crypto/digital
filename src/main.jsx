@@ -77,14 +77,11 @@ function App() {
   const [currentUser, setCurrentUser] = useState('')
   const [authMessage, setAuthMessage] = useState('')
   const [authBusy, setAuthBusy] = useState(false)
-  const [logoutMessage, setLogoutMessage] = useState('')
   const [drafts, setDrafts] = useState([])
   const [editingDraftId, setEditingDraftId] = useState(null)
   const [draftLimitMessage, setDraftLimitMessage] = useState('')
-  const [editorPanel, setEditorPanel] = useState('data')
+  const [editorInitialPreview, setEditorInitialPreview] = useState(false)
   const [form, setForm] = useState({ ...emptyForm })
-  const [duration, setDuration] = useState(90)
-  const [paymentStatus, setPaymentStatus] = useState('unpaid')
 
   const activeDraft = useMemo(() => drafts[0], [drafts])
   const go = (next) => {
@@ -211,9 +208,8 @@ function App() {
     }
     setDraftLimitMessage('')
     setEditingDraftId(null)
-    setEditorPanel('data')
+    setEditorInitialPreview(false)
     setForm({ ...emptyForm })
-    setPaymentStatus('unpaid')
     go('editor')
   }
   const saveDraft = () => {
@@ -223,57 +219,25 @@ function App() {
     }
     const next = { ...form, id: editingDraftId || Date.now(), status: 'Draft' }
     setDrafts((items) => [next, ...items.filter((item) => item.id !== next.id)].slice(0, 2))
+    setEditingDraftId(next.id)
     setDraftLimitMessage('')
-    go('preview')
     return true
   }
-  const openDraft = (draft) => {
+  const openDraft = (draft, preview = false) => {
     setDrafts((items) => [draft, ...items.filter((item) => item.id !== draft.id)])
     setForm({ ...emptyForm, ...draft, palette: draft.palette || 'forest', layout: draft.layout || 'gate' })
     setEditingDraftId(draft.id)
-    setEditorPanel('data')
+    setEditorInitialPreview(preview)
     setDraftLimitMessage('')
     go('editor')
   }
-  const publish = () => {
-    go('payment')
-  }
-  const logout = async () => {
-    if (!supabase) {
-      setLogoutMessage('Layanan akun belum tersedia. Tidak dapat mengakhiri sesi.')
-      return
-    }
-
-    setLogoutMessage('')
-    try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
-      setCurrentUser('')
-      setPassword('')
-      setAuthMode('login')
-      setAuthMessage('')
-      go('login')
-    } catch (error) {
-      console.error('Gagal mengakhiri sesi:', error)
-      setLogoutMessage('Tidak dapat keluar dari akun. Periksa koneksi lalu coba lagi.')
-    }
-  }
-
   return (
-    <main className={`app-shell ${screen === 'welcome' ? 'welcome-app-shell' : ''} ${screen === 'login' ? 'auth-app-shell' : ''} ${screen === 'home' ? 'home-app-shell' : ''}`}>
+    <main className={`app-shell ${screen === 'welcome' ? 'welcome-app-shell' : ''} ${screen === 'login' ? 'auth-app-shell' : ''} ${screen === 'home' ? 'home-app-shell' : ''} ${screen === 'editor' ? 'studio-app-shell' : ''}`}>
       {screen === 'welcome' && <Welcome onboarding={onboarding} setOnboarding={setOnboarding} onStart={startApp} />}
       {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} busy={authBusy} onSubmit={submitAuth} />}
-      {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpen={go} draftLimitMessage={draftLimitMessage} />}
-      {screen === 'drafts' && <DraftsPage drafts={drafts} onBack={() => go('home')} onCreate={createDraft} onOpenDraft={openDraft} />}
-      {screen === 'profile' && <ProfilePage username={currentUser} draftCount={drafts.length} onBack={() => go('home')} onLogout={logout} />}
-      {screen === 'editor' && <Suspense fallback={<div className="wedding-loading" role="status">Memuat editor undangan…</div>}><InvitationEditor form={form} setForm={setForm} onBack={() => go('home')} onSave={saveDraft} initialPanel={editorPanel} Icon={Icon} VenueMapPicker={VenueMapPicker} /></Suspense>}
-      {screen === 'preview' && <Preview draft={activeDraft} onBack={() => go('editor')} onEdit={(panel = 'data') => { setForm({ ...emptyForm, ...(activeDraft || {}) }); setEditingDraftId(activeDraft?.id ?? null); setEditorPanel(panel); go('editor') }} onPublish={publish} />}
-      {screen === 'payment' && <Payment duration={duration} setDuration={setDuration} status={paymentStatus} onBack={() => go('preview')} onSubmit={() => setPaymentStatus('waiting')} />}
-      {screen === 'share' && <Share onBack={() => go('home')} />}
-      {['home', 'drafts', 'profile'].includes(screen) && <>
-        {logoutMessage && <p className="nav-message" role="alert">{logoutMessage}</p>}
-        <BottomNav active={screen} setActive={(item) => { setLogoutMessage(''); go(item) }} onLogout={logout} />
-      </>}
+      {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpen={() => activeDraft && openDraft(activeDraft, true)} draftLimitMessage={draftLimitMessage} />}
+      {screen === 'editor' && <Suspense fallback={<div className="wedding-loading" role="status">Memuat editor undangan…</div>}><InvitationEditor form={form} setForm={setForm} onBack={() => go('home')} onSave={saveDraft} initialPreview={editorInitialPreview} Icon={Icon} VenueMapPicker={VenueMapPicker} /></Suspense>}
+      {screen === 'home' && <BottomNav active="home" setActive={() => go('home')} />}
     </main>
   )
 }
@@ -801,6 +765,6 @@ function Payment({ duration, setDuration, status, onBack, onSubmit }) { const pr
 
 function Share({ onBack }) { return <section className="plain-screen centered-screen"><p className="eyebrow">Langkah 6 dari 6</p><div className="success-mark"><Icon name="check" size={28} /></div><p className="eyebrow">Undangan aktif</p><h1>Siap dibagikan dengan elegan.</h1><p className="muted center-copy">Link undanganmu sudah siap. Bagikan secara personal melalui WhatsApp.</p><div className="link-card"><span>undanganku.id/andi-dan-sari</span><button className="icon-button small" aria-label="Salin link"><Icon name="share" size={17} /></button></div><button className="primary-button full">Bagikan ke WhatsApp <Icon name="share" size={17} /></button><button className="text-button" onClick={onBack}>Kembali ke beranda</button></section> }
 
-function BottomNav({ active, setActive, onLogout }) { return <nav className="bottom-nav"><button className={active === 'home' ? 'active' : ''} onClick={() => setActive('home')}><Icon name="home" /><span>Beranda</span></button><button className={active === 'drafts' ? 'active' : ''} onClick={() => setActive('drafts')}><Icon name="file" /><span>Undangan</span></button><button className={active === 'profile' ? 'active' : ''} onClick={() => setActive('profile')}><Icon name="user" /><span>Profil</span></button><button type="button" onClick={onLogout}><Icon name="logout" /><span>Logout</span></button></nav> }
+function BottomNav({ active, setActive }) { return <nav className="bottom-nav home-only-nav" aria-label="Navigasi utama"><button className={active === 'home' ? 'active' : ''} onClick={() => setActive('home')}><Icon name="home" /><span>Beranda</span></button></nav> }
 
 createRoot(document.getElementById('root')).render(<App />)

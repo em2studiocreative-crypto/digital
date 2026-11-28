@@ -36,29 +36,29 @@ export default function WeddingInvitation({ couple, draft, opened, onOpen, onMus
   const initials = `${firstName[0] || 'M'} & ${secondName[0] || 'M'}`
   const menu = Array.isArray(draft?.menuOrder) ? draft.menuOrder : ['acara', 'keluarga', 'peta', 'doa']
   const menuLabels = { acara: 'Acara', keluarga: 'Keluarga', peta: 'Peta', doa: 'Doa' }
+  const toggleMusic = async () => {
+    if (!draft?.musicData) {
+      onMusicSettings?.()
+      return
+    }
+    if (!musicPlayer.current) return
+    try {
+      if (musicPlaying) {
+        musicPlayer.current.pause()
+        setMusicPlaying(false)
+      } else {
+        await musicPlayer.current.play()
+        setMusicPlaying(true)
+      }
+    } catch (error) {
+      console.error('Gagal memutar musik undangan:', error)
+    }
+  }
   const openSection = (event, item) => {
     if (!opened) {
       event.preventDefault()
       onOpen()
       window.setTimeout(() => document.getElementById(`wedding-${item}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
-    }
-    const toggleMusic = async () => {
-      if (!draft?.musicData) {
-        onMusicSettings?.()
-        return
-      }
-      if (!musicPlayer.current) return
-      try {
-        if (musicPlaying) {
-          musicPlayer.current.pause()
-          setMusicPlaying(false)
-        } else {
-          await musicPlayer.current.play()
-          setMusicPlaying(true)
-        }
-      } catch (error) {
-        console.error('Gagal memutar musik undangan:', error)
-      }
     }
   }
 
@@ -79,9 +79,9 @@ export default function WeddingInvitation({ couple, draft, opened, onOpen, onMus
     <div className="wedding-cover-names">
       <span className="wedding-cover-initials">{initials}</span>
       <h1>{couple}</h1>
-      <p>{formatDate(draft?.eventDate)}</p>
+      <p>{formatDate(draft?.eventDate) || 'Tanggal acara'}</p>
     </div>
-    {(draft?.guestName || draft?.guestMessage) && <p className="wedding-cover-greeting">{draft.guestMessage || `Kepada Yth. ${draft.guestName}`}</p>}
+    <p className="wedding-cover-greeting">{draft?.guestMessage || `Kepada Yth. ${draft?.guestName || 'Nama tamu'}`}</p>
     <nav className="wedding-cover-menu" aria-label="Menu undangan">
       {menu.map((item) => <a key={item} href={`#wedding-${item}`} onClick={(event) => openSection(event, item)}>
         <span aria-hidden="true">{item === 'acara' ? '▦' : item === 'keluarga' ? '♧' : item === 'peta' ? '⌖' : '♡'}</span>

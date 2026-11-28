@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import WeddingInvitation from './WeddingInvitation.jsx'
 
 const palettes = [
   { id: 'forest', label: 'Rimbun', paper: '#f3eddf', ink: '#263c30', accent: '#b8935b' },
@@ -27,8 +28,14 @@ function Field({ id, label, value, onChange, type = 'text', placeholder, require
   </label>
 }
 
-export default function InvitationEditor({ form, setForm, onBack, onSave, initialPanel = 'data', Icon, VenueMapPicker }) {
-  const [activePanel, setActivePanel] = useState(initialPanel)
+export default function InvitationEditor({ form, setForm, onBack, onSave, initialPreview = false, Icon, VenueMapPicker }) {
+  const [activePanel, setActivePanel] = useState('appearance')
+  const [panelOpen, setPanelOpen] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(initialPreview)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [shareMessage, setShareMessage] = useState('')
+  const [shareError, setShareError] = useState('')
+  const [shareStatus, setShareStatus] = useState('')
   const [mapStatus, setMapStatus] = useState('')
   const [mapError, setMapError] = useState('')
   const [uploadError, setUploadError] = useState('')
@@ -38,20 +45,39 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }))
   const palette = palettes.find((item) => item.id === form.palette) || palettes[0]
   const menuOrder = orderedMenu(form.menuOrder)
-  const save = () => {
-    const required = [
-      ['groom', 'nama lengkap mempelai pria'],
-      ['bride', 'nama lengkap mempelai wanita'],
-      ['eventDate', 'tanggal pernikahan'],
-    ]
-    const missing = required.find(([key]) => !form[key]?.trim())
-    if (missing) {
-      setFormError(`Lengkapi ${missing[1]} terlebih dahulu.`)
-      document.getElementById(missing[0] === 'eventDate' ? 'event-date' : missing[0])?.focus()
+  const makeShareMessage = (guestName = form.guestName) => {
+    const date = form.eventDate
+      ? new Date(`${form.eventDate}T00:00:00`).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+      : 'tanggal acara'
+    return `Kepada Yth. ${guestName || 'Nama tamu'}\n\nKami mengundang Anda untuk hadir di pernikahan kami, ${form.groomNickname || form.groom || 'Nama Pria'} & ${form.brideNickname || form.bride || 'Nama Wanita'}, pada ${date}. Tautan undangan belum aktif.\n\nTerima kasih.`
+  }
+  const openShare = () => {
+    setShareMessage(makeShareMessage())
+    setShareError('')
+    setShareStatus('')
+    setShareOpen(true)
+  }
+  const copyShareMessage = async () => {
+    if (!navigator.clipboard?.writeText) {
+      setShareError('Browser ini tidak mendukung penyalinan teks. Pilih dan salin pesan secara manual.')
       return
     }
+    try {
+      await navigator.clipboard.writeText(shareMessage)
+      setShareStatus('Pesan berhasil disalin.')
+      setShareError('')
+    } catch (error) {
+      console.error('Gagal menyalin pesan undangan:', error)
+      setShareError('Pesan tidak dapat disalin. Pilih teks pesan lalu salin secara manual.')
+    }
+  }
+  const save = () => {
     setFormError('')
-    if (onSave() === false) setFormError('Batas rancangan tercapai. Kembali ke beranda dan buka rancangan untuk mengedit.')
+    if (onSave() === false) {
+      setFormError('Batas rancangan tercapai. Kembali ke beranda dan buka rancangan untuk mengedit.')
+      return
+    }
+    setPanelOpen(false)
   }
 
   useEffect(() => {
@@ -163,42 +189,45 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
     update('menuOrder', next)
   }
 
-  return <section className="plain-screen unified-editor" style={{ '--invite-paper': palette.paper, '--invite-ink': palette.ink, '--invite-accent': palette.accent, '--invite-font': form.fontColor || palette.ink }}>
-    <header className="unified-editor-header">
-      <button className="icon-button" onClick={onBack} aria-label="Kembali ke beranda"><Icon name="back" /></button>
-      <div className="unified-editor-brand"><img src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" /><span><small>UNDANGANKU</small><strong>Undangan Pernikahan</strong></span></div>
-      <button className="unified-save-button" type="button" onClick={save}>Simpan</button>
-    </header>
+  const couple = `${form.groomNickname || form.groom || 'Nama Pria'} & ${form.brideNickname || form.bride || 'Nama Wanita'}`
 
-    <div className="unified-editor-content">
-      <section className={`unified-cover layout-${form.layout || 'gate'}`} aria-label="Pratinjau sampul undangan">
-        {form.photo ? <img src={form.photo} alt="Foto pasangan" /> : <div className="unified-cover-art" aria-hidden="true"><span>✦</span></div>}
-        <div className="unified-cover-copy">
-          <span>UNDANGAN PERNIKAHAN</span>
-          <h1>{form.groomNickname || form.groom || 'Nama Mempelai'} <i>&amp;</i> {form.brideNickname || form.bride || 'Nama Mempelai'}</h1>
-          <p>{form.eventDate ? new Date(`${form.eventDate}T00:00:00`).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Tanggal pernikahan'}</p>
-        </div>
-        <button type="button" className="unified-audio-toggle" onClick={() => setActivePanel('music')} aria-label="Atur musik undangan"><Icon name="play" size={14} /></button>
-      </section>
-
-      <nav className="unified-invitation-nav" aria-label="Bagian undangan">
-        {menuOrder.map((id) => <span key={id}>{menuItems.find((item) => item.id === id)?.label}</span>)}
-      </nav>
-
-      <div className="unified-editor-intro">
-        <p className="eyebrow">Ruang penyuntingan</p>
-        <h1>Rangkai undanganmu.</h1>
-        <p>Isi cerita, sesuaikan tampilannya, lalu lihat hasilnya sebelum dibagikan.</p>
+  return <section className="studio-screen" style={{ '--invite-paper': palette.paper, '--invite-ink': palette.ink, '--invite-accent': palette.accent, '--invite-font-color': form.fontColor || palette.ink }}>
+    <div className="studio-canvas">
+      <button type="button" className="studio-back-button" onClick={onBack} aria-label="Kembali ke beranda"><Icon name="back" size={19} /></button>
+      {previewOpen && <header className="live-topbar studio-preview-topbar"><span className="live-mode-label">Pratinjau tamu</span><button className="icon-button" onClick={() => setPreviewOpen(false)} aria-label="Tutup pratinjau"><Icon name="close" /></button></header>}
+      <div className="live-scroll studio-live-scroll">
+        <WeddingInvitation
+          couple={couple}
+          draft={form}
+          opened={previewOpen}
+          onOpen={() => setPreviewOpen(true)}
+          onMusicSettings={() => { setActivePanel('music'); setPanelOpen(true) }}
+        />
       </div>
+    </div>
 
-      <div className="unified-panel-tabs" role="tablist" aria-label="Pengaturan undangan">
+    {!previewOpen && <nav className="live-toolbar" aria-label="Alat undangan">
+      <button type="button" onClick={() => { setActivePanel('appearance'); setPanelOpen(true) }}><Icon name="camera" size={18} /><span>Foto</span></button>
+      <button type="button" onClick={() => { setActivePanel('appearance'); setPanelOpen(true) }}><Icon name="palette" size={18} /><span>Atur tema</span></button>
+      <button type="button" onClick={() => setPreviewOpen(true)}><Icon name="eye" size={18} /><span>Pratinjau</span></button>
+      <button type="button" className="live-share-button" onClick={openShare}><Icon name="share" size={18} /><span>Bagikan</span></button>
+    </nav>}
+
+    {panelOpen && <div className="studio-panel-overlay" role="presentation" onClick={() => setPanelOpen(false)}>
+      <section className="studio-settings-panel" role="dialog" aria-modal="true" aria-labelledby="studio-panel-title" onClick={(event) => event.stopPropagation()}>
+        <header className="studio-panel-header">
+          <div><p className="eyebrow">Undanganmu</p><h1 id="studio-panel-title">Atur undangan</h1></div>
+          <button type="button" className="unified-save-button" onClick={save}>Selesai</button>
+        </header>
+        <div className="unified-panel-tabs" role="tablist" aria-label="Pengaturan undangan">
         {[
           ['data', 'Isi data', 'file'],
           ['appearance', 'Tampilan', 'palette'],
           ['music', 'Musik', 'play'],
         ].map(([id, label, icon]) => <button key={id} type="button" role="tab" aria-selected={activePanel === id} className={activePanel === id ? 'active' : ''} onClick={() => setActivePanel(id)}><Icon name={icon} size={17} />{label}</button>)}
-      </div>
+        </div>
 
+        <div className="studio-panel-content">
       {activePanel === 'data' && <div className="unified-panel" role="tabpanel">
         <section className="unified-section">
           <header><span>01</span><div><h2>Nama pasangan</h2><p>Nama yang akan tampil di undangan.</p></div></header>
@@ -307,11 +336,30 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
         </section>
       </div>}
       {formError && <p className="field-error unified-form-error" role="alert">{formError}</p>}
-    </div>
+        </div>
+      </section>
+    </div>}
 
-    <footer className="unified-editor-footer">
-      <button type="button" className="unified-secondary-button" onClick={() => setActivePanel(activePanel === 'appearance' ? 'data' : 'appearance')}><Icon name="palette" size={17} /> Atur tema</button>
-      <button type="button" className="unified-primary-button" onClick={save}><Icon name="eye" size={17} /> Pratinjau undangan</button>
-    </footer>
+    {shareOpen && <div className="live-share-overlay" role="presentation" onClick={() => setShareOpen(false)}>
+      <section className="live-share-dialog studio-share-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-share-title" onClick={(event) => event.stopPropagation()}>
+        <button type="button" className="icon-button live-share-close" onClick={() => setShareOpen(false)} aria-label="Tutup"><Icon name="close" size={18} /></button>
+        <h2 id="studio-share-title">Bagikan undangan</h2>
+        <label className="studio-share-field">
+          <span>Nama tamu (muncul di halaman awal)</span>
+          <input value={form.guestName || ''} onChange={(event) => { update('guestName', event.target.value); setShareMessage(makeShareMessage(event.target.value)) }} placeholder="Contoh: Bapak Andi dan keluarga" />
+        </label>
+        <label className="studio-share-field">
+          <span>Pesan</span>
+          <textarea value={shareMessage} onChange={(event) => setShareMessage(event.target.value)} rows={6} />
+        </label>
+        <p className="studio-share-note">Ini tampilan contoh. Tautannya belum aktif.</p>
+        {shareError && <p className="field-error" role="alert">{shareError}</p>}
+        {shareStatus && <p className="studio-share-status" role="status">{shareStatus}</p>}
+        <div className="studio-share-actions">
+          <button type="button" className="unified-secondary-button" onClick={() => setShareOpen(false)}>Tutup</button>
+          <button type="button" className="unified-primary-button" onClick={copyShareMessage}>Salin pesan</button>
+        </div>
+      </section>
+    </div>}
   </section>
 }

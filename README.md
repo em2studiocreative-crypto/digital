@@ -39,7 +39,9 @@ Password dan sesi ditangani Supabase Auth, bukan disimpan di aplikasi. Nama ID d
 4. Pastikan kebijakan password Supabase minimal 8 karakter. Untuk pendaftaran publik, aktifkan CAPTCHA/rate limit Auth di pengaturan Supabase.
 5. Untuk GitHub Pages, simpan kedua nilai sebagai **repository secrets** bernama persis `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY` (bukan sebagai Supabase secret). Pastikan **Settings → Pages → Build and deployment → Source** menggunakan **GitHub Actions**. Setelah menambahkan atau mengubah secrets, buka **Actions → Deploy UndanganKu to GitHub Pages → Run workflow** pada branch `main`; tunggu job build dan deploy sukses. Workflow memvalidasi kedua secrets sebelum build. Untuk host lain, atur keduanya pada environment build host tersebut. Vite menyematkan variabel `VITE_*` ke hasil build, jadi build dan deploy ulang setelah perubahan konfigurasi.
 
-Untuk basis data baru, `schema.sql` sudah menyertakan kolom dan indeks tersebut. Jangan pernah menaruh `service_role` key di frontend.
+Untuk basis data baru, jalankan `schema.sql`; skema ini mengizinkan rancangan dan undangan tanpa `template_id`, sementara kolom `content` menampung pengaturan editor. Untuk project yang sudah memakai skema lama, jalankan `supabase/migrations/202611280001_editor_without_templates.sql` di Supabase SQL Editor. Jangan pernah menaruh `service_role` key di frontend.
+
+Kolom `content` ditujukan untuk data tambahan editor (seperti nama panggilan, jadwal resepsi, keluarga, doa, pesan tamu, pengaturan tampilan, koordinat lokasi, serta URL media). Foto dan musik harus diunggah ke Supabase Storage dan URL-nya disimpan di `content`, bukan menyimpan data URI/base64 langsung di database. Editor saat ini belum melakukan operasi simpan/muat rancangan ke Supabase; migrasi ini menyiapkan struktur database dan tidak mengaktifkan sinkronisasi aplikasi dengan sendirinya.
 
 OTP, pemulihan akun otomatis, payment gateway/Virtual Account, dashboard admin, RSVP tersimpan, dan upload bukti transfer belum terhubung pada tahap ini.
 
