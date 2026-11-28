@@ -232,7 +232,7 @@ function App() {
     setSelectedColor(0)
     setForm({ groom: '', bride: '', eventDate: '', venue: '', city: '', photo: '' })
     setPaymentStatus('unpaid')
-    go('templates')
+    go('editor')
   }
   const saveDraft = () => {
     const next = { ...form, template: selectedTemplate, color: selectedColor, id: Date.now(), status: 'Draft' }
@@ -278,17 +278,17 @@ function App() {
       {screen === 'welcome' && <Welcome onboarding={onboarding} setOnboarding={setOnboarding} onStart={startApp} />}
       {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} busy={authBusy} onSubmit={submitAuth} />}
       {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpen={setScreen} />}
-      {screen === 'templates' && <TemplateGallery onBack={() => go('home')} selected={selectedTemplate} setSelected={setSelectedTemplate} onUse={() => go('editor')} />}
+      {screen === 'templates' && <TemplateGallery onBack={() => go('editor')} selected={selectedTemplate} setSelected={setSelectedTemplate} onUse={() => go('colors')} />}
       {screen === 'drafts' && <DraftsPage drafts={drafts} onBack={() => go('home')} onCreate={createDraft} onOpenDraft={openDraft} />}
       {screen === 'profile' && <ProfilePage username={currentUser} draftCount={drafts.length} onBack={() => go('home')} onLogout={logout} />}
-      {screen === 'editor' && <Editor form={form} setForm={setForm} selectedTemplate={selectedTemplate} onBack={() => go('templates')} onNext={() => go('colors')} />}
-      {screen === 'colors' && <ColorSelection template={selectedTemplate} photo={form.photo} selectedColor={selectedColor} setSelectedColor={setSelectedColor} onBack={() => go('editor')} onSave={saveDraft} />}
+      {screen === 'editor' && <Editor form={form} setForm={setForm} onBack={() => go('home')} onNext={() => go('templates')} />}
+      {screen === 'colors' && <ColorSelection template={selectedTemplate} photo={form.photo} setPhoto={(photo) => setForm((current) => ({ ...current, photo }))} selectedColor={selectedColor} setSelectedColor={setSelectedColor} onBack={() => go('templates')} onSave={saveDraft} />}
       {screen === 'preview' && <Preview draft={activeDraft} onBack={() => go(previewBackScreen)} onPublish={publish} />}
       {screen === 'payment' && <Payment duration={duration} setDuration={setDuration} status={paymentStatus} onBack={() => go('preview')} onSubmit={() => setPaymentStatus('waiting')} />}
       {screen === 'share' && <Share onBack={() => go('home')} />}
       {['home', 'templates', 'drafts', 'profile'].includes(screen) && <>
         {logoutMessage && <p className="nav-message" role="alert">{logoutMessage}</p>}
-        <BottomNav active={screen} setActive={(item) => { setLogoutMessage(''); setActiveNav(item); go(item) }} onLogout={logout} />
+        <BottomNav active={screen} setActive={(item) => { setLogoutMessage(''); setActiveNav(item); if (item === 'templates' && screen !== 'templates') createDraft(); else go(item) }} onLogout={logout} />
       </>}
     </main>
   )
@@ -412,7 +412,7 @@ function Home({ drafts, activeDraft, username, onCreate, onOpen }) {
       <div className="home-hero-copy">
         <span className="home-kicker"><span /> RUANG PRIBADIMU</span>
         <h1>Selamat datang,<br /><em>{displayName}.</em></h1>
-        <p>Rangkai undangan sesuai ceritamu. Pilih desain yang tetap indah tanpa foto.</p>
+        <p>Rangkai undangan sesuai ceritamu. Lengkapi data acara, lalu pilih desain yang paling kamu suka.</p>
       </div>
     </section>
     <section className="home-flow" aria-label="Alur membuat undangan">
@@ -421,9 +421,9 @@ function Home({ drafts, activeDraft, username, onCreate, onOpen }) {
         <h2>Dari ide hingga siap dibagikan.</h2>
       </header>
       <div className="home-flow-row">
-        <div className="home-flow-step"><span className="home-flow-marker"><small>01</small><span className="home-flow-icon"><Icon name="grid" size={25} /></span></span><strong>Pilih desain</strong><small>Temukan gayamu</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>01</small><span className="home-flow-icon"><Icon name="file" size={25} /></span></span><strong>Isi data</strong><small>Lengkapi nama &amp; acara</small></div>
         <Icon className="home-flow-arrow" name="arrow" size={18} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>02</small><span className="home-flow-icon"><Icon name="file" size={25} /></span></span><strong>Isi data</strong><small>Nama &amp; acara</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>02</small><span className="home-flow-icon"><Icon name="grid" size={25} /></span></span><strong>Pilih desain</strong><small>Temukan gayamu</small></div>
         <Icon className="home-flow-arrow" name="arrow" size={18} />
         <div className="home-flow-step"><span className="home-flow-marker"><small>03</small><span className="home-flow-icon"><Icon name="palette" size={25} /></span></span><strong>Atur warna</strong><small>Pilih nuansa</small></div>
       </div>
@@ -439,7 +439,7 @@ function Home({ drafts, activeDraft, username, onCreate, onOpen }) {
     <section className="home-drafts-panel">
       <span className="home-drafts-shimmer" aria-hidden="true" />
       <div className="section-heading draft-heading home-section-heading"><div><p className="eyebrow">Disimpan untuk nanti</p><h2>Rancanganmu</h2></div><span className="count-pill">{drafts.length}/2</span></div>
-      {activeDraft ? <div className="draft-card"><TemplateArt item={activeDraft.template} photo={activeDraft.photo} colorIndex={activeDraft.color || 0} className="draft-thumb" /><div className="draft-copy"><h3>{activeDraft.groom || 'Rancangan Undangan' } <span>&amp;</span> {activeDraft.bride || 'Pasangan'}</h3><p>{activeDraft.template?.title || 'Template pilihan'} · Tema {activeDraft.color + 1}</p><button className="outline-button" onClick={() => onOpen('preview')}>Lihat pratinjau</button></div></div> : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada rancangan</h3><p>Mulai dari template yang paling mewakili kisah kalian.</p><button className="primary-button" onClick={onCreate}>Buat rancangan pertama <Icon name="arrow" size={17} /></button></div>}
+      {activeDraft ? <div className="draft-card"><TemplateArt item={activeDraft.template} photo={activeDraft.photo} colorIndex={activeDraft.color || 0} className="draft-thumb" /><div className="draft-copy"><h3>{activeDraft.groom || 'Rancangan Undangan' } <span>&amp;</span> {activeDraft.bride || 'Pasangan'}</h3><p>{activeDraft.template?.title || 'Template pilihan'} · Tema {activeDraft.color + 1}</p><button className="outline-button" onClick={() => onOpen('preview')}>Lihat pratinjau</button></div></div> : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada rancangan</h3><p>Mulai dengan melengkapi data acara, lalu pilih desain undangan.</p><button className="primary-button" onClick={onCreate}>Buat rancangan pertama <Icon name="arrow" size={17} /></button></div>}
     </section>
   </section>
 }
@@ -498,13 +498,49 @@ function TemplateGallery({ onBack, selected, setSelected, onUse }) {
   const [filter, setFilter] = useState('Semua')
   const filters = ['Semua', ...new Set(templates.map((item) => item.type))]
   const shown = filter === 'Semua' ? templates : templates.filter((item) => item.type === filter)
-  return <section className="plain-screen"><Header title="Pilih Template" onBack={onBack} action={<button type="button" className="icon-button" aria-label="Cari"><Icon name="search" /></button>} /><div className="screen-intro"><p className="eyebrow">Langkah 1 dari 6</p><h1>Temukan yang terasa seperti kamu.</h1><p className="template-helper">Pilih konsep desain yang kamu suka. Template foto bisa diunggah saat mengisi data undangan.</p></div><button type="button" className={selected ? 'selection-hint selected' : 'selection-hint'} onClick={() => { if (selected) onUse() }} aria-label={selected ? 'Lanjutkan ke pengisian data' : 'Petunjuk memilih template'}><Icon name={selected ? 'check' : 'grid'} size={17} /><span>{selected ? `Template “${selected.title}” dipilih. Ketuk di sini untuk lanjut mengisi data.` : 'Pilih konsep simple, full color, natural, tradisional, floral, atau dengan foto.'}</span></button><div className="filter-row">{filters.map((item) => <button type="button" key={item} className={filter === item ? 'filter active' : 'filter'} onClick={() => setFilter(item)}>{item}</button>)}</div><div className="template-grid">{shown.map((item) => <TemplateCard key={item.id} item={item} selected={selected?.id === item.id} onClick={() => setSelected(item)} />)}</div>{selected && <div className="sticky-action"><div><span className="eyebrow">Template dipilih</span><strong>{selected.title}</strong><small>{selected.photoLayout ? `${photoLayoutLabels[selected.photoLayout]} · ` : 'Tanpa foto · '}{selected.colors.length} pilihan warna</small></div><button type="button" className="primary-button" onClick={onUse}>Lanjutkan ke data <Icon name="arrow" size={17} /></button></div>}</section>
+  return <section className="plain-screen"><Header title="Pilih Template" onBack={onBack} action={<button type="button" className="icon-button" aria-label="Cari"><Icon name="search" /></button>} /><div className="screen-intro"><p className="eyebrow">Langkah 2 dari 6</p><h1>Temukan yang terasa seperti kamu.</h1><p className="template-helper">Data acara sudah siap. Sekarang pilih desain undangan; foto dapat ditambahkan setelah memilih template foto.</p></div><button type="button" className={selected ? 'selection-hint selected' : 'selection-hint'} onClick={() => { if (selected) onUse() }} aria-label={selected ? 'Lanjutkan mengatur desain' : 'Petunjuk memilih template'}><Icon name={selected ? 'check' : 'grid'} size={17} /><span>{selected ? `Template “${selected.title}” dipilih. Ketuk di sini untuk mengatur warna dan foto.` : 'Pilih konsep simple, full color, natural, tradisional, floral, atau dengan foto.'}</span></button><div className="filter-row">{filters.map((item) => <button type="button" key={item} className={filter === item ? 'filter active' : 'filter'} onClick={() => setFilter(item)}>{item}</button>)}</div><div className="template-grid">{shown.map((item) => <TemplateCard key={item.id} item={item} selected={selected?.id === item.id} onClick={() => setSelected(item)} />)}</div>{selected && <div className="sticky-action"><div><span className="eyebrow">Template dipilih</span><strong>{selected.title}</strong><small>{selected.photoLayout ? `${photoLayoutLabels[selected.photoLayout]} · ` : 'Tanpa foto · '}{selected.colors.length} pilihan warna</small></div><button type="button" className="primary-button" onClick={onUse}>Lanjut atur desain <Icon name="arrow" size={17} /></button></div>}</section>
 }
 
 function TemplateCard({ item, selected, compact, onClick }) { return <button type="button" className={`template-card ${compact ? 'compact' : ''} ${selected ? 'selected' : ''}`} onClick={onClick} aria-pressed={selected}><TemplateArt item={item} className="template-image" />{selected && <span className="selected-badge"><Icon name="check" size={14} /></span>}<div className="template-meta"><div><h3>{item.title}</h3><p>{selected ? 'Dipilih · lanjutkan di bawah' : `${item.photoLayout ? photoLayoutLabels[item.photoLayout] : 'Tanpa foto'} · ${item.colors.length} warna`}</p></div><span className="round-arrow"><Icon name="chevron" size={17} /></span></div></button> }
 
-function Editor({ form, setForm, selectedTemplate, onBack, onNext }) {
-  const update = (key, value) => setForm({ ...form, [key]: value })
+function Editor({ form, setForm, onBack, onNext }) {
+  const [dataError, setDataError] = useState('')
+  const update = (key, value) => {
+    setForm((current) => ({ ...current, [key]: value }))
+    setDataError('')
+  }
+  const handleNext = () => {
+    const requiredFields = [
+      ['groom', 'nama mempelai pria'],
+      ['bride', 'nama mempelai wanita'],
+      ['eventDate', 'tanggal acara'],
+      ['venue', 'lokasi acara'],
+      ['city', 'kota'],
+    ]
+    const missingField = requiredFields.find(([key]) => !form[key].trim())
+    if (missingField) {
+      setDataError(`Lengkapi ${missingField[1]} sebelum memilih desain.`)
+      return
+    }
+    onNext()
+  }
+  return <section className="plain-screen editor-screen">
+    <Header title="Isi Data Undangan" onBack={onBack} action={<span className="step-count">1 dari 6</span>} />
+    <div className="screen-intro"><p className="eyebrow">Langkah 1 dari 6</p><h1>Lengkapi detail hari bahagiamu.</h1><p className="template-helper">Isi semua data acara terlebih dahulu. Setelah itu, kamu bisa memilih desain yang paling sesuai.</p></div>
+    <div className="form-section">
+      <div className="section-heading"><div><p className="eyebrow">Identitas pasangan</p><h2>Mulai dari nama kalian</h2></div><Icon name="sparkle" size={21} /></div>
+      <label className="field-label" htmlFor="groom">Nama mempelai pria</label><input id="groom" className="text-input" value={form.groom} onChange={(e) => update('groom', e.target.value)} placeholder="Contoh: Bagas Pratama" />
+      <label className="field-label" htmlFor="bride">Nama mempelai wanita</label><input id="bride" className="text-input" value={form.bride} onChange={(e) => update('bride', e.target.value)} placeholder="Contoh: Andini Larasati" />
+      <label className="field-label" htmlFor="date">Tanggal acara</label><input id="date" className="text-input" type="date" value={form.eventDate} onChange={(e) => update('eventDate', e.target.value)} />
+      <label className="field-label" htmlFor="venue">Lokasi acara</label><input id="venue" className="text-input" value={form.venue} onChange={(e) => update('venue', e.target.value)} placeholder="Contoh: Gedung Kartika" />
+      <label className="field-label" htmlFor="city">Kota</label><input id="city" className="text-input" value={form.city} onChange={(e) => update('city', e.target.value)} placeholder="Contoh: Jakarta Selatan" />
+    </div>
+    {dataError && <p className="field-error" role="alert">{dataError}</p>}
+    <div className="bottom-action"><button className="primary-button full" onClick={handleNext}>Lanjut pilih desain <Icon name="arrow" size={17} /></button></div>
+  </section>
+}
+
+function ColorSelection({ template, photo, setPhoto, selectedColor, setSelectedColor, onBack, onSave }) {
   const [photoError, setPhotoError] = useState('')
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0]
@@ -525,50 +561,28 @@ function Editor({ form, setForm, selectedTemplate, onBack, onNext }) {
         setPhotoError('Foto tidak dapat dibaca. Coba pilih gambar lain.')
         return
       }
-      update('photo', reader.result)
+      setPhoto(reader.result)
     }
     reader.onerror = () => setPhotoError('Foto tidak dapat dibaca. Coba pilih gambar lain.')
     reader.readAsDataURL(file)
   }
-  return <section className="plain-screen editor-screen">
-    <Header title="Isi Data Undangan" onBack={onBack} action={<span className="step-count">2 dari 6</span>} />
-    <TemplateArt item={selectedTemplate} photo={form.photo} className="editor-preview">
-      <div className={`editor-art-copy ${selectedTemplate?.photoLayout ? 'photo-preview-copy' : ''}`}>
-        <span className="eyebrow">PRATINJAU TEMA{selectedTemplate?.photoLayout ? ' · FOTO' : ' · TANPA FOTO'}</span>
-        <h2>{form.groom || 'Nama Pria'} <small>&amp;</small> {form.bride || 'Nama Wanita'}</h2>
-        <p>{selectedTemplate?.title}</p>
-      </div>
-    </TemplateArt>
-    {selectedTemplate?.photoLayout && <div className="form-section photo-upload-section">
-      <div className="section-heading"><div><p className="eyebrow">Personalisasi foto</p><h2>Tambahkan foto kalian</h2></div><Icon name="camera" size={21} /></div>
-      <p className="template-helper">Desain ini menggunakan {photoLayoutLabels[selectedTemplate.photoLayout].toLowerCase()}. Gunakan foto JPG, PNG, atau WebP hingga 5 MB. Di prototipe ini, foto tersimpan sementara selama sesi aplikasi.</p>
-      <label className="photo-upload">
-        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoChange} />
-        <span className="photo-upload-icon"><Icon name="camera" size={19} /></span>
-        <span><strong>{form.photo ? 'Ganti foto' : 'Pilih foto dari perangkat'}</strong><small>{form.photo ? 'Foto akan mengikuti tata letak template' : 'Foto bersifat opsional'}</small></span>
-      </label>
-      {form.photo && <button type="button" className="text-button photo-remove" onClick={() => { update('photo', ''); setPhotoError('') }}>Hapus foto</button>}
-      {photoError && <p className="field-error" role="alert">{photoError}</p>}
-    </div>}
-    <div className="form-section">
-      <div className="section-heading"><div><p className="eyebrow">Identitas pasangan</p><h2>Mulai dari nama kalian</h2></div><Icon name="sparkle" size={21} /></div>
-      <label className="field-label" htmlFor="groom">Nama mempelai pria</label><input id="groom" className="text-input" value={form.groom} onChange={(e) => update('groom', e.target.value)} placeholder="Contoh: Bagas Pratama" />
-      <label className="field-label" htmlFor="bride">Nama mempelai wanita</label><input id="bride" className="text-input" value={form.bride} onChange={(e) => update('bride', e.target.value)} placeholder="Contoh: Andini Larasati" />
-      <label className="field-label" htmlFor="date">Tanggal acara</label><input id="date" className="text-input" type="date" value={form.eventDate} onChange={(e) => update('eventDate', e.target.value)} />
-      <label className="field-label" htmlFor="venue">Lokasi acara</label><input id="venue" className="text-input" value={form.venue} onChange={(e) => update('venue', e.target.value)} placeholder="Contoh: Gedung Kartika" />
-      <label className="field-label" htmlFor="city">Kota</label><input id="city" className="text-input" value={form.city} onChange={(e) => update('city', e.target.value)} placeholder="Contoh: Jakarta Selatan" />
-    </div>
-    <div className="bottom-action"><button className="primary-button full" onClick={onNext}>Lanjut pilih warna <Icon name="arrow" size={17} /></button></div>
-  </section>
-}
-
-function ColorSelection({ template, photo, selectedColor, setSelectedColor, onBack, onSave }) {
   return <section className="plain-screen">
-    <Header title="Atur Nuansa Warna" onBack={onBack} action={<span className="step-count">3 dari 6</span>} />
-    <div className="screen-intro"><p className="eyebrow">Satu sentuhan personal</p><h1>Pilih warna yang paling mewakili.</h1><p className="template-helper">{template?.title || 'Template pilihan'} · kamu bisa mengganti warna ini kapan saja sebelum menyimpan.</p></div>
+    <Header title="Atur Desain & Warna" onBack={onBack} action={<span className="step-count">3 dari 6</span>} />
+    <div className="screen-intro"><p className="eyebrow">Satu sentuhan personal</p><h1>Sesuaikan desain pilihanmu.</h1><p className="template-helper">{template?.title || 'Template pilihan'} · atur warna dan foto sebelum melihat pratinjau.</p></div>
     <TemplateArt item={template} photo={photo} colorIndex={selectedColor} className="color-preview">
       <div className={`editor-art-copy ${template?.photoLayout ? 'photo-preview-copy' : ''}`}><span className="eyebrow">PRATINJAU TEMA{template?.photoLayout ? ' · FOTO' : ' · TANPA FOTO'}</span><strong>Nama <i>&amp;</i> Nama</strong><small>12 · 12 · 26</small></div>
     </TemplateArt>
+    {template?.photoLayout && <div className="form-section photo-upload-section">
+      <div className="section-heading"><div><p className="eyebrow">Personalisasi foto</p><h2>Tambahkan foto kalian</h2></div><Icon name="camera" size={21} /></div>
+      <p className="template-helper">Desain ini menggunakan {photoLayoutLabels[template.photoLayout].toLowerCase()}. Gunakan foto JPG, PNG, atau WebP hingga 5 MB. Di prototipe ini, foto tersimpan sementara selama sesi aplikasi.</p>
+      <label className="photo-upload">
+        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoChange} />
+        <span className="photo-upload-icon"><Icon name="camera" size={19} /></span>
+        <span><strong>{photo ? 'Ganti foto' : 'Pilih foto dari perangkat'}</strong><small>{photo ? 'Foto akan mengikuti tata letak template' : 'Foto bersifat opsional'}</small></span>
+      </label>
+      {photo && <button type="button" className="text-button photo-remove" onClick={() => { setPhoto(''); setPhotoError('') }}>Hapus foto</button>}
+      {photoError && <p className="field-error" role="alert">{photoError}</p>}
+    </div>}
     <div className="form-section color-selection-section">
       <div className="section-heading"><div><p className="eyebrow">Pilihan warna</p><h2>Pilih nuansa undanganmu</h2></div></div>
       <div className="color-picker">{template?.colors.map((color, index) => <button key={color} className={selectedColor === index ? 'color-swatch active' : 'color-swatch'} style={{ background: color }} onClick={() => setSelectedColor(index)} aria-label={`Pilih warna ${index + 1}`} aria-pressed={selectedColor === index} />)}</div>

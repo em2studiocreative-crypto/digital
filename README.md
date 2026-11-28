@@ -11,6 +11,7 @@ npm run dev
 
 Antarmuka menggunakan data lokal untuk rancangan undangan. Akun menggunakan Supabase Auth:
 
+- alur pembuatan: isi lengkap data pasangan dan acara, pilih template, atur foto/warna, lalu pratinjau
 - onboarding
 - daftar dan login dengan Nama ID dan kata sandi
 - beranda
