@@ -27,8 +27,8 @@ function Field({ id, label, value, onChange, type = 'text', placeholder, require
   </label>
 }
 
-export default function InvitationEditor({ form, setForm, onBack, onSave, Icon, VenueMapPicker }) {
-  const [activePanel, setActivePanel] = useState('data')
+export default function InvitationEditor({ form, setForm, onBack, onSave, initialPanel = 'data', Icon, VenueMapPicker }) {
+  const [activePanel, setActivePanel] = useState(initialPanel)
   const [mapStatus, setMapStatus] = useState('')
   const [mapError, setMapError] = useState('')
   const [uploadError, setUploadError] = useState('')

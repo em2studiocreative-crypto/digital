@@ -1,3 +1,5 @@
+import { useRef, useState } from 'react'
+
 function formatDate(value) {
   if (!value) return ''
   return new Date(`${value}T00:00:00`).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
@@ -8,7 +10,9 @@ function makeMapsSearchLink(location, city) {
   return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : ''
 }
 
-export default function WeddingInvitation({ couple, draft, opened, onOpen, rsvp, onRsvp }) {
+export default function WeddingInvitation({ couple, draft, opened, onOpen, onMusicSettings, rsvp, onRsvp }) {
+  const musicPlayer = useRef(null)
+  const [musicPlaying, setMusicPlaying] = useState(false)
   const palettes = {
     forest: ['#f3eddf', '#263c30', '#b8935b'],
     ivory: ['#f7f4ec', '#544b3e', '#a7895e'],
@@ -27,20 +31,66 @@ export default function WeddingInvitation({ couple, draft, opened, onOpen, rsvp,
     { title: 'Akad Nikah', date: draft?.eventDate, time: draft?.akadTime, venue: draft?.venue, address: draft?.address, mapLink: draft?.mapLink || makeMapsSearchLink(draft?.address || draft?.venue, draft?.city) },
     ...(hasReception ? [{ title: 'Resepsi', date: draft?.receptionDate, time: draft?.receptionTime, venue: draft?.receptionVenue || draft?.venue, address: draft?.receptionAddress || draft?.address, mapLink: makeMapsSearchLink(draft?.receptionAddress || draft?.receptionVenue || draft?.address || draft?.venue, draft?.city) }] : []),
   ]
+  const firstName = draft?.groomNickname || draft?.groom?.split(/\s+/)[0] || 'M'
+  const secondName = draft?.brideNickname || draft?.bride?.split(/\s+/)[0] || 'M'
+  const initials = `${firstName[0] || 'M'} & ${secondName[0] || 'M'}`
+  const menu = Array.isArray(draft?.menuOrder) ? draft.menuOrder : ['acara', 'keluarga', 'peta', 'doa']
+  const menuLabels = { acara: 'Acara', keluarga: 'Keluarga', peta: 'Peta', doa: 'Doa' }
+  const openSection = (event, item) => {
+    if (!opened) {
+      event.preventDefault()
+      onOpen()
+      window.setTimeout(() => document.getElementById(`wedding-${item}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+    }
+    const toggleMusic = async () => {
+      if (!draft?.musicData) {
+        onMusicSettings?.()
+        return
+      }
+      if (!musicPlayer.current) return
+      try {
+        if (musicPlaying) {
+          musicPlayer.current.pause()
+          setMusicPlaying(false)
+        } else {
+          await musicPlayer.current.play()
+          setMusicPlaying(true)
+        }
+      } catch (error) {
+        console.error('Gagal memutar musik undangan:', error)
+      }
+    }
+  }
 
   const designClasses = `layout-${draft?.layout || 'gate'} font-${draft?.fontStyle || 'anggun'} buttons-${draft?.buttonStyle || 'capsule'} ${draft?.fontColor ? 'has-font-color' : ''}`
   if (!opened) return <section className={`wedding-cover ${designClasses}`} style={style}>
-    {draft?.photo ? <img className="wedding-cover-photo" src={draft.photo} alt="Foto pasangan pada sampul undangan" /> : <div className="wedding-cover-art" aria-hidden="true" />}
-    <div className="wedding-cover-content">
-      <span className="wedding-kicker">UNDANGAN PERNIKAHAN</span>
+    <header className="wedding-cover-heading">
+      <span>UNDANGAN<br />PERNIKAHAN</span>
+      <button type="button" className={`wedding-cover-music ${draft?.musicData ? 'has-track' : ''}`} onClick={toggleMusic} aria-label={musicPlaying ? 'Jeda musik' : draft?.musicName ? `Putar musik: ${draft.musicName}` : 'Atur musik undangan'}>{musicPlaying ? 'Ⅱ' : '♪'}</button>
+    </header>
+    <div className={`wedding-portrait ${draft?.layout === 'circle' ? 'portrait-circle' : ''} ${draft?.layout === 'full' ? 'layout-full' : ''} ${draft?.photo ? 'has-photo' : ''}`}>
+      {draft?.photo ? <img src={draft.photo} alt="Foto pasangan" /> : <div className="wedding-couple-illustration" role="img" aria-label="Ilustrasi pasangan pengantin">
+        <span className="portrait-caption">HARI BAHAGIA KAMI</span>
+        <i className="portrait-sun" />
+        <i className="portrait-person portrait-person-one" />
+        <i className="portrait-person portrait-person-two" />
+      </div>}
+    </div>
+    <div className="wedding-cover-names">
+      <span className="wedding-cover-initials">{initials}</span>
       <h1>{couple}</h1>
       <p>{formatDate(draft?.eventDate)}</p>
-      <button className="light-button" onClick={onOpen}>Buka Undangan <span aria-hidden="true">→</span></button>
     </div>
+    {(draft?.guestName || draft?.guestMessage) && <p className="wedding-cover-greeting">{draft.guestMessage || `Kepada Yth. ${draft.guestName}`}</p>}
+    <nav className="wedding-cover-menu" aria-label="Menu undangan">
+      {menu.map((item) => <a key={item} href={`#wedding-${item}`} onClick={(event) => openSection(event, item)}>
+        <span aria-hidden="true">{item === 'acara' ? '▦' : item === 'keluarga' ? '♧' : item === 'peta' ? '⌖' : '♡'}</span>
+        {menuLabels[item] || item}
+      </a>)}
+    </nav>
+    {draft?.musicData && <audio ref={musicPlayer} src={draft.musicData} loop preload="none" />}
   </section>
 
-  const menu = Array.isArray(draft?.menuOrder) ? draft.menuOrder : ['acara', 'keluarga', 'peta', 'doa']
-  const menuLabels = { acara: 'Acara', keluarga: 'Keluarga', peta: 'Peta', doa: 'Doa' }
   return <article className={`wedding-page ${designClasses}`} style={style}>
     <section className="wedding-hero">
       {draft?.photo ? <img src={draft.photo} alt="Foto pasangan" /> : <div className="wedding-cover-art" aria-hidden="true" />}

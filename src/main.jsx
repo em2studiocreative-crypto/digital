@@ -81,6 +81,7 @@ function App() {
   const [drafts, setDrafts] = useState([])
   const [editingDraftId, setEditingDraftId] = useState(null)
   const [draftLimitMessage, setDraftLimitMessage] = useState('')
+  const [editorPanel, setEditorPanel] = useState('data')
   const [form, setForm] = useState({ ...emptyForm })
   const [duration, setDuration] = useState(90)
   const [paymentStatus, setPaymentStatus] = useState('unpaid')
@@ -210,6 +211,7 @@ function App() {
     }
     setDraftLimitMessage('')
     setEditingDraftId(null)
+    setEditorPanel('data')
     setForm({ ...emptyForm })
     setPaymentStatus('unpaid')
     go('editor')
@@ -229,6 +231,7 @@ function App() {
     setDrafts((items) => [draft, ...items.filter((item) => item.id !== draft.id)])
     setForm({ ...emptyForm, ...draft, palette: draft.palette || 'forest', layout: draft.layout || 'gate' })
     setEditingDraftId(draft.id)
+    setEditorPanel('data')
     setDraftLimitMessage('')
     go('editor')
   }
@@ -263,8 +266,8 @@ function App() {
       {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpen={go} draftLimitMessage={draftLimitMessage} />}
       {screen === 'drafts' && <DraftsPage drafts={drafts} onBack={() => go('home')} onCreate={createDraft} onOpenDraft={openDraft} />}
       {screen === 'profile' && <ProfilePage username={currentUser} draftCount={drafts.length} onBack={() => go('home')} onLogout={logout} />}
-      {screen === 'editor' && <Suspense fallback={<div className="wedding-loading" role="status">Memuat editor undangan…</div>}><InvitationEditor form={form} setForm={setForm} onBack={() => go('home')} onSave={saveDraft} Icon={Icon} VenueMapPicker={VenueMapPicker} /></Suspense>}
-      {screen === 'preview' && <Preview draft={activeDraft} onBack={() => go('editor')} onEdit={() => { setForm({ ...emptyForm, ...(activeDraft || {}) }); setEditingDraftId(activeDraft?.id ?? null); go('editor') }} onPublish={publish} />}
+      {screen === 'editor' && <Suspense fallback={<div className="wedding-loading" role="status">Memuat editor undangan…</div>}><InvitationEditor form={form} setForm={setForm} onBack={() => go('home')} onSave={saveDraft} initialPanel={editorPanel} Icon={Icon} VenueMapPicker={VenueMapPicker} /></Suspense>}
+      {screen === 'preview' && <Preview draft={activeDraft} onBack={() => go('editor')} onEdit={(panel = 'data') => { setForm({ ...emptyForm, ...(activeDraft || {}) }); setEditingDraftId(activeDraft?.id ?? null); setEditorPanel(panel); go('editor') }} onPublish={publish} />}
       {screen === 'payment' && <Payment duration={duration} setDuration={setDuration} status={paymentStatus} onBack={() => go('preview')} onSubmit={() => setPaymentStatus('waiting')} />}
       {screen === 'share' && <Share onBack={() => go('home')} />}
       {['home', 'drafts', 'profile'].includes(screen) && <>
@@ -765,16 +768,32 @@ function Preview({ draft, onBack, onEdit, onPublish }) {
     <button className="live-preview-button" onClick={() => setLiveOpen(true)}><span className="play-badge"><Icon name="play" size={14} /></span><span><strong>Lihat undangan seperti tamu</strong><small>Sampul, profil pasangan, jadwal, dan lokasi acara</small></span><Icon name="chevron" size={18} /></button>
     <div className="preview-sections"><div className="mini-feature"><Icon name="clock" /><div><strong>Jadwal acara</strong><span>{eventSummary.length} rangkaian ditampilkan</span></div><Icon name="check" size={17} /></div><div className="mini-feature"><Icon name="camera" /><div><strong>{draft?.photo ? 'Foto sampul terpasang' : 'Sampul ilustrasi'}</strong><span>{draft?.musicName || 'Tanpa musik'}</span></div><Icon name="check" size={17} /></div></div>
     <div className="bottom-action"><button className="primary-button full" onClick={onPublish}>Lanjut aktivasi <Icon name="arrow" size={17} /></button></div>
-    {liveOpen && <LivePreview couple={couple} draft={draft} onClose={() => setLiveOpen(false)} />}
+    {liveOpen && <LivePreview couple={couple} draft={draft} onClose={() => setLiveOpen(false)} onEdit={onEdit} onPublish={onPublish} />}
   </section>
 }
 
-function LivePreview({ couple, draft, onClose }) {
+function LivePreview({ couple, draft, onClose, onEdit, onPublish }) {
   const [opened, setOpened] = useState(false)
   const [rsvp, setRsvp] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
   return <div className="live-overlay">
-    <div className="live-topbar"><div><span className="eyebrow light-text">Mode tamu</span><strong>Live Preview</strong></div><button className="icon-button light" onClick={onClose} aria-label="Tutup live preview"><Icon name="close" /></button></div>
-    <div className="live-scroll">{draft?.musicData && <audio className="live-music-player" controls src={draft.musicData} aria-label="Musik undangan">Browser tidak mendukung pemutar audio.</audio>}<Suspense fallback={<div className="wedding-loading" role="status">Memuat pratinjau undangan…</div>}><WeddingInvitation couple={couple} draft={draft} opened={opened} onOpen={() => setOpened(true)} rsvp={rsvp} onRsvp={() => setRsvp(true)} /></Suspense></div>
+    <div className="live-topbar"><span className="live-mode-label">Pratinjau tamu</span><button className="icon-button light" onClick={onClose} aria-label="Tutup live preview"><Icon name="close" /></button></div>
+    <div className="live-scroll"><Suspense fallback={<div className="wedding-loading" role="status">Memuat pratinjau undangan…</div>}><WeddingInvitation couple={couple} draft={draft} opened={opened} onOpen={() => setOpened(true)} onMusicSettings={() => { onClose(); onEdit('music') }} rsvp={rsvp} onRsvp={() => setRsvp(true)} /></Suspense></div>
+    <nav className="live-toolbar" aria-label="Alat pratinjau undangan">
+      <button type="button" onClick={() => { onClose(); onEdit('appearance') }}><Icon name="camera" size={18} /><span>Foto</span></button>
+      <button type="button" onClick={() => { onClose(); onEdit('appearance') }}><Icon name="palette" size={18} /><span>Atur tema</span></button>
+      <button type="button" onClick={() => setOpened((value) => !value)}><Icon name="eye" size={18} /><span>{opened ? 'Sampul' : 'Pratinjau'}</span></button>
+      <button type="button" className="live-share-button" onClick={() => setShareOpen(true)}><Icon name="share" size={18} /><span>Bagikan</span></button>
+    </nav>
+    {shareOpen && <div className="live-share-overlay" role="presentation" onClick={() => setShareOpen(false)}>
+      <section className="live-share-dialog" role="dialog" aria-modal="true" aria-labelledby="live-share-title" onClick={(event) => event.stopPropagation()}>
+        <button type="button" className="icon-button live-share-close" onClick={() => setShareOpen(false)} aria-label="Tutup"><Icon name="close" size={18} /></button>
+        <span className="eyebrow">Undanganmu</span>
+        <h2 id="live-share-title">Siap dibagikan?</h2>
+        <p>Aktifkan undangan untuk mendapatkan tautan yang bisa dikirim kepada tamu.</p>
+        <button type="button" className="unified-primary-button" onClick={() => { setShareOpen(false); onClose(); onPublish() }}>Lanjut aktivasi</button>
+      </section>
+    </div>}
   </div>
 }
 
