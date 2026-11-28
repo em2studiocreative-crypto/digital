@@ -282,7 +282,7 @@ function App() {
     <main className={`app-shell ${screen === 'welcome' ? 'welcome-app-shell' : ''} ${screen === 'login' ? 'auth-app-shell' : ''} ${screen === 'home' ? 'home-app-shell' : ''} ${screen === 'editor' ? 'studio-app-shell' : ''}`}>
       {screen === 'welcome' && <Welcome onboarding={onboarding} setOnboarding={setOnboarding} onStart={startApp} />}
       {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} busy={authBusy} onSubmit={submitAuth} />}
-      {screen === 'home' && <Home drafts={drafts} username={currentUser} onCreate={createDraft} onOpen={(draft) => openDraft(draft, true)} draftLimitMessage={draftLimitMessage} draftsLoading={draftsLoading} draftsError={draftsError} onRetryDrafts={() => setDraftLoadVersion((version) => version + 1)} />}
+      {screen === 'home' && <Home drafts={drafts} username={currentUser} onCreate={createDraft} onOpen={(draft) => openDraft(draft)} draftLimitMessage={draftLimitMessage} draftsLoading={draftsLoading} draftsError={draftsError} onRetryDrafts={() => setDraftLoadVersion((version) => version + 1)} />}
       {screen === 'editor' && <Suspense fallback={<div className="wedding-loading" role="status">Memuat editor undangan…</div>}><InvitationEditor form={form} setForm={setForm} onBack={() => go('home')} onSave={saveDraft} initialPreview={editorInitialPreview} Icon={Icon} VenueMapPicker={VenueMapPicker} /></Suspense>}
       {screen === 'home' && <BottomNav active="home" setActive={() => go('home')} />}
     </main>
@@ -448,7 +448,7 @@ function Home({ drafts, username, onCreate, onOpen, draftLimitMessage, draftsLoa
       {draftLimitMessage && <p className="field-error" role="alert">{draftLimitMessage}</p>}
       {draftsLoading ? <p className="home-drafts-status" role="status">Memuat rancangan tersimpan…</p>
         : draftsError ? <div className="home-drafts-error" role="alert"><p>{draftsError}</p><button type="button" className="outline-button" onClick={onRetryDrafts}>Coba lagi</button></div>
-          : drafts.length ? <div className="home-drafts-list">{drafts.map((draft) => <div className="draft-card" key={draft.id}><InvitationThumbnail draft={draft} className="draft-thumb" /><div className="draft-copy"><h3>{draft.groomNickname || draft.groom || 'Rancangan Undangan'} <span>&amp;</span> {draft.brideNickname || draft.bride || 'Pasangan'}</h3><p>Editor undangan · tersimpan di Supabase</p><button className="outline-button" onClick={() => onOpen(draft)}>Lihat pratinjau</button></div></div>)}</div>
+          : drafts.length ? <div className="home-drafts-list">{drafts.map((draft) => <div className="draft-card" key={draft.id}><InvitationThumbnail draft={draft} className="draft-thumb" /><div className="draft-copy"><h3>{draft.groomNickname || draft.groom || 'Rancangan Undangan'} <span>&amp;</span> {draft.brideNickname || draft.bride || 'Pasangan'}</h3><p>Editor undangan · tersimpan di Supabase</p><button className="outline-button" onClick={() => onOpen(draft)}>Lanjutkan rancangan</button></div></div>)}</div>
             : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada rancangan</h3><p>Mulai dengan melengkapi data acara dan tampilan undangan.</p><button className="primary-button" onClick={onCreate}>Buat rancangan pertama <Icon name="arrow" size={17} /></button></div>}
     </section>
   </section>
