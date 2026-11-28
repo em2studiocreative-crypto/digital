@@ -769,6 +769,138 @@
 .wedding-rsvp .primary-button { max-width: 320px; margin: 15px auto 0; background: var(--invite-ink); }
 .wedding-rsvp .rsvp-success { justify-content: center; color: var(--invite-ink) !important; }
 
+.color-preview .editor-art-copy {
+  position: relative;
+  z-index: 1;
+  gap: 8px;
+  padding: 18px 22px;
+}
+
+.color-preview .editor-art-copy > strong {
+  max-width: 100%;
+  font-size: clamp(22px, 6vw, 34px);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.color-preview .editor-art-copy > small {
+  font-size: 11px;
+  letter-spacing: .3px;
+  line-height: 1.4;
+}
+
+.design-preview-detail,
+.design-preview-parents {
+  display: block;
+  max-width: 100%;
+  color: var(--art-secondary);
+  font-size: 10px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.design-preview-parents {
+  color: color-mix(in srgb, var(--art-secondary), transparent 18%);
+  font-family: 'Playfair Display', serif;
+  font-size: 11px;
+  font-style: italic;
+}
+
+.photo-layout-cover .design-preview-detail,
+.photo-layout-cover .design-preview-parents {
+  color: #fff !important;
+}
+
+.color-preview.has-font-color .editor-art-copy > :is(.eyebrow, strong, small, .design-preview-detail, .design-preview-parents) {
+  color: var(--art-text-color) !important;
+}
+
+.color-preview.has-font-color .editor-art-copy > strong i {
+  color: color-mix(in srgb, var(--art-text-color), white 28%) !important;
+}
+
+.invitation-preview.has-font-color .preview-content :is(.eyebrow, h1, p) {
+  color: var(--art-text-color) !important;
+}
+
+.invitation-preview.has-font-color .preview-content h1 em {
+  color: color-mix(in srgb, var(--art-text-color), white 28%) !important;
+}
+
+.font-color-picker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 13px;
+}
+
+.font-color-swatch,
+.font-color-custom {
+  position: relative;
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 3px solid var(--paper);
+  border-radius: 50%;
+  outline: 1px solid #cdd5cb;
+  background: var(--font-swatch-color, #fff);
+  cursor: pointer;
+}
+
+.font-color-swatch.active,
+.font-color-custom.active {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.font-color-custom {
+  border-style: dashed;
+  background: #fffdf8;
+  color: var(--forest);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.font-color-custom input {
+  position: absolute;
+  inset: -10px;
+  width: calc(100% + 20px);
+  height: calc(100% + 20px);
+  opacity: 0;
+  cursor: pointer;
+}
+
+.font-color-value {
+  color: var(--forest);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.wedding-cover.has-font-color .wedding-cover-content {
+  color: var(--invite-font-color);
+  background: rgba(28, 35, 29, .42);
+}
+
+.wedding-cover.has-font-color .wedding-cover-content :is(.wedding-kicker, h1, p) {
+  color: var(--invite-font-color);
+}
+
+.wedding-page.has-font-color :is(.wedding-welcome h2, .wedding-welcome > p:last-child, .wedding-couple-section .wedding-kicker, .wedding-couple-names h2, .wedding-couple-names p, .wedding-events > .wedding-kicker, .wedding-events > h2, .wedding-event-card h3, .wedding-event-date, .wedding-event-venue, .wedding-map-link, .wedding-rsvp .wedding-kicker, .wedding-rsvp h2) {
+  color: var(--invite-font-color);
+}
+
+.wedding-page.has-font-color .wedding-event-card {
+  border-color: color-mix(in srgb, var(--invite-font-color), transparent 68%);
+}
+
+.wedding-page.has-font-color .wedding-event-mark,
+.wedding-page.has-font-color .wedding-flourish,
+.wedding-page.has-font-color .wedding-couple-names > span {
+  color: var(--invite-font-color);
+}
+
 .editor-map-settings {
   display: grid;
   gap: 12px;

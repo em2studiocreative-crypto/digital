@@ -105,6 +105,14 @@ const themeLabels = {
   'Dengan Foto': 'Foto Pasangan',
 }
 
+const fontColorChoices = [
+  { label: 'Hijau hutan', value: '#263c30' },
+  { label: 'Cokelat klasik', value: '#765b4a' },
+  { label: 'Abu arang', value: '#414442' },
+  { label: 'Merah marun', value: '#743f49' },
+  { label: 'Biru malam', value: '#3e5368' },
+]
+
 function App() {
   const [screen, setScreen] = useState('welcome')
   const hasNavigated = useRef(false)
@@ -119,6 +127,7 @@ function App() {
   const [drafts, setDrafts] = useState([])
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [selectedColor, setSelectedColor] = useState(0)
+  const [selectedFontColor, setSelectedFontColor] = useState('#263c30')
   const [activeNav, setActiveNav] = useState('home')
   const [form, setForm] = useState({
     groom: '',
@@ -262,6 +271,7 @@ function App() {
     if (drafts.length >= 2) return
     setSelectedTemplate(null)
     setSelectedColor(0)
+    setSelectedFontColor('#263c30')
     setForm({
       groom: '',
       bride: '',
@@ -285,7 +295,7 @@ function App() {
     go('editor')
   }
   const saveDraft = () => {
-    const next = { ...form, template: selectedTemplate, color: selectedColor, id: Date.now(), status: 'Draft' }
+    const next = { ...form, template: selectedTemplate, color: selectedColor, fontColor: selectedFontColor, id: Date.now(), status: 'Draft' }
     setDrafts((items) => [next, ...items].slice(0, 2))
     setPreviewBackScreen('colors')
     go('preview')
@@ -313,6 +323,7 @@ function App() {
     })
     setSelectedTemplate(draft.template || null)
     setSelectedColor(draft.color || 0)
+    setSelectedFontColor(draft.fontColor || draft.template?.colors?.[1] || '#263c30')
     setPreviewBackScreen('drafts')
     go('preview')
   }
@@ -350,7 +361,7 @@ function App() {
       {screen === 'drafts' && <DraftsPage drafts={drafts} onBack={() => go('home')} onCreate={createDraft} onOpenDraft={openDraft} />}
       {screen === 'profile' && <ProfilePage username={currentUser} draftCount={drafts.length} onBack={() => go('home')} onLogout={logout} />}
       {screen === 'editor' && <Editor form={form} setForm={setForm} onBack={() => go('home')} onNext={() => go('templates')} />}
-      {screen === 'colors' && <ColorSelection template={selectedTemplate} photo={form.photo} setPhoto={(photo) => setForm((current) => ({ ...current, photo }))} selectedColor={selectedColor} setSelectedColor={setSelectedColor} onBack={() => go('templates')} onSave={saveDraft} />}
+      {screen === 'colors' && <ColorSelection template={selectedTemplate} form={form} photo={form.photo} setPhoto={(photo) => setForm((current) => ({ ...current, photo }))} selectedColor={selectedColor} setSelectedColor={setSelectedColor} selectedFontColor={selectedFontColor} setSelectedFontColor={setSelectedFontColor} onBack={() => go('templates')} onSave={saveDraft} />}
       {screen === 'preview' && <Preview draft={activeDraft} onBack={() => go(previewBackScreen)} onPublish={publish} />}
       {screen === 'payment' && <Payment duration={duration} setDuration={setDuration} status={paymentStatus} onBack={() => go('preview')} onSubmit={() => setPaymentStatus('waiting')} />}
       {screen === 'share' && <Share onBack={() => go('home')} />}
@@ -552,7 +563,7 @@ function ProfilePage({ username, draftCount, onBack, onLogout }) {
   </section>
 }
 
-function TemplateArt({ item, className = '', children, colorIndex = 0, photo = '' }) {
+function TemplateArt({ item, className = '', children, colorIndex = 0, photo = '', fontColor = '' }) {
   const art = item?.art || 'simple'
   const colors = item?.colors || ['#f3eddf', '#263c30', '#b8935b']
   const primaryIndex = colorIndex % colors.length
@@ -560,10 +571,11 @@ function TemplateArt({ item, className = '', children, colorIndex = 0, photo = '
     '--art-primary': colors[primaryIndex],
     '--art-secondary': colors[(primaryIndex + 1) % colors.length],
     '--art-accent': colors[(primaryIndex + 2) % colors.length],
+    ...(fontColor ? { '--art-text-color': fontColor } : {}),
   }
   const isPhotoTemplate = Boolean(item?.photoLayout)
   const content = children || <div className="art-copy"><span>UNDANGAN PERNIKAHAN</span><strong>Nama <i>&amp;</i> Nama</strong><small>12 · 12 · 26</small></div>
-  return <div className={`template-art art-${art} ${className}`} style={style}>
+  return <div className={`template-art art-${art} ${fontColor ? 'has-font-color' : ''} ${className}`} style={style}>
     <span className="art-type">{themeLabels[item?.type] || item?.type || 'Klasik Editorial'}</span>
     {isPhotoTemplate && <div className="photo-frame" aria-hidden="true">
       {photo ? <img className="photo-image" src={photo} alt="" /> : <span className="photo-placeholder" />}
@@ -767,7 +779,7 @@ function Editor({ form, setForm, onBack, onNext }) {
   </section>
 }
 
-function ColorSelection({ template, photo, setPhoto, selectedColor, setSelectedColor, onBack, onSave }) {
+function ColorSelection({ template, form, photo, setPhoto, selectedColor, setSelectedColor, selectedFontColor, setSelectedFontColor, onBack, onSave }) {
   const [photoError, setPhotoError] = useState('')
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0]
@@ -796,8 +808,21 @@ function ColorSelection({ template, photo, setPhoto, selectedColor, setSelectedC
   return <section className="plain-screen">
     <Header title="Atur Desain & Warna" onBack={onBack} action={<span className="step-count">3 dari 6</span>} />
     <div className="screen-intro"><p className="eyebrow">Satu sentuhan personal</p><h1>Sesuaikan desain pilihanmu.</h1><p className="template-helper">{template?.title || 'Template pilihan'} · atur warna dan foto sebelum melihat pratinjau.</p></div>
-    <TemplateArt item={template} photo={photo} colorIndex={selectedColor} className="color-preview">
-      <div className={`editor-art-copy ${template?.photoLayout ? 'photo-preview-copy' : ''}`}><span className="eyebrow">PRATINJAU TEMA{template?.photoLayout ? ' · FOTO' : ' · TANPA FOTO'}</span><strong>Nama <i>&amp;</i> Nama</strong><small>12 · 12 · 26</small></div>
+    <TemplateArt item={template} photo={photo} colorIndex={selectedColor} fontColor={selectedFontColor} className="color-preview">
+      <div className={`editor-art-copy ${template?.photoLayout ? 'photo-preview-copy' : ''}`}>
+        <span className="eyebrow">{template?.title || 'PRATINJAU UNDANGAN'}</span>
+        <strong>{form.groom || 'Nama mempelai pria'} <i>&amp;</i> {form.bride || 'Nama mempelai wanita'}</strong>
+        <small>{formatInvitationDate(form.eventDate) || 'Tanggal acara'}</small>
+        {(form.akadTime || form.venue || form.city) && <span className="design-preview-detail">
+          {[form.akadTime && `${form.akadTime} WIB`, form.venue, form.city].filter(Boolean).join(' · ')}
+        </span>}
+        {(form.groomParents || form.brideParents) && <span className="design-preview-parents">
+          {[form.groomParents, form.brideParents].filter(Boolean).join(' · ')}
+        </span>}
+        {(form.receptionDate || form.receptionTime) && <span className="design-preview-detail">
+          Resepsi · {[formatInvitationDate(form.receptionDate), form.receptionTime && `${form.receptionTime} WIB`].filter(Boolean).join(' · ')}
+        </span>}
+      </div>
     </TemplateArt>
     {template?.photoLayout && <div className="form-section photo-upload-section">
       <div className="section-heading"><div><p className="eyebrow">Personalisasi foto</p><h2>Tambahkan foto kalian</h2></div><Icon name="camera" size={21} /></div>
@@ -814,6 +839,17 @@ function ColorSelection({ template, photo, setPhoto, selectedColor, setSelectedC
       <div className="section-heading"><div><p className="eyebrow">Pilihan warna</p><h2>Pilih nuansa undanganmu</h2></div></div>
       <div className="color-picker">{template?.colors.map((color, index) => <button key={color} className={selectedColor === index ? 'color-swatch active' : 'color-swatch'} style={{ background: color }} onClick={() => setSelectedColor(index)} aria-label={`Pilih warna ${index + 1}`} aria-pressed={selectedColor === index} />)}</div>
       <p className="color-choice-label">Nuansa {selectedColor + 1} dari {template?.colors.length || 0}</p>
+    </div>
+    <div className="form-section font-color-section">
+      <div className="section-heading"><div><p className="eyebrow">Warna tulisan</p><h2>Sesuaikan warna font</h2></div></div>
+      <div className="font-color-picker" role="group" aria-label="Pilih warna font">
+        {fontColorChoices.map((choice) => <button key={choice.value} type="button" className={`font-color-swatch ${selectedFontColor.toLowerCase() === choice.value ? 'active' : ''}`} style={{ '--font-swatch-color': choice.value }} onClick={() => setSelectedFontColor(choice.value)} aria-label={choice.label} aria-pressed={selectedFontColor.toLowerCase() === choice.value} />)}
+        <label className={`font-color-custom ${fontColorChoices.some((choice) => choice.value === selectedFontColor.toLowerCase()) ? '' : 'active'}`}>
+          <input type="color" value={selectedFontColor} onChange={(event) => setSelectedFontColor(event.target.value)} aria-label="Pilih warna font khusus" />
+          <span aria-hidden="true">+</span>
+        </label>
+      </div>
+      <p className="color-choice-label">Warna font: <span className="font-color-value">{selectedFontColor.toUpperCase()}</span></p>
     </div>
     <div className="bottom-action"><button className="primary-button full" onClick={onSave}>Lanjut ke pratinjau <Icon name="arrow" size={17} /></button></div>
   </section>
@@ -841,7 +877,7 @@ function Preview({ draft, onBack, onPublish }) {
   return <section className="plain-screen">
     <Header title="Pratinjau Undangan" onBack={onBack} action={<span className="step-count">4 dari 6</span>} />
     <div className="preview-note"><Icon name="check" size={17} /><span>Pratinjau sampul undangan digital. Buka Live Preview untuk melihat seluruh halaman acara.</span></div>
-    <TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="invitation-preview">
+    <TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} fontColor={draft?.fontColor} className="invitation-preview">
       <div className="preview-content">
         <span className="eyebrow">SAVE THE DATE</span>
         <h1>{couple}</h1>

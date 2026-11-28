@@ -15,6 +15,7 @@ export default function WeddingInvitation({ couple, draft, opened, onOpen, rsvp,
     '--invite-paper': colors[colorIndex],
     '--invite-ink': colors[(colorIndex + 1) % colors.length],
     '--invite-accent': colors[(colorIndex + 2) % colors.length],
+    ...(draft?.fontColor ? { '--invite-font-color': draft.fontColor } : {}),
   }
   const hasReception = Boolean(draft?.receptionDate || draft?.receptionTime || draft?.receptionVenue || draft?.receptionAddress)
   const events = [
@@ -22,7 +23,7 @@ export default function WeddingInvitation({ couple, draft, opened, onOpen, rsvp,
     ...(hasReception ? [{ title: 'Resepsi', date: draft?.receptionDate, time: draft?.receptionTime, venue: draft?.receptionVenue || draft?.venue, address: draft?.receptionAddress || draft?.address, mapLink: makeMapsSearchLink(draft?.receptionAddress || draft?.receptionVenue || draft?.address || draft?.venue, draft?.city) }] : []),
   ]
 
-  if (!opened) return <section className={`wedding-cover art-${draft?.template?.art || 'simple'}`} style={style}>
+  if (!opened) return <section className={`wedding-cover art-${draft?.template?.art || 'simple'} ${draft?.fontColor ? 'has-font-color' : ''}`} style={style}>
     {draft?.photo ? <img className="wedding-cover-photo" src={draft.photo} alt="Foto pasangan pada sampul undangan" /> : <div className="wedding-cover-art" aria-hidden="true" />}
     <div className="wedding-cover-content">
       <span className="wedding-kicker">UNDANGAN PERNIKAHAN</span>
@@ -32,7 +33,7 @@ export default function WeddingInvitation({ couple, draft, opened, onOpen, rsvp,
     </div>
   </section>
 
-  return <article className={`wedding-page art-${draft?.template?.art || 'simple'}`} style={style}>
+  return <article className={`wedding-page art-${draft?.template?.art || 'simple'} ${draft?.fontColor ? 'has-font-color' : ''}`} style={style}>
     <section className="wedding-hero">
       {draft?.photo ? <img src={draft.photo} alt="Foto pasangan" /> : <div className="wedding-cover-art" aria-hidden="true" />}
       <div className="wedding-hero-copy"><span>THE WEDDING OF</span><h1>{couple}</h1><p>{formatDate(draft?.eventDate)}</p></div>

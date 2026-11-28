@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Antarmuka menggunakan data lokal untuk rancangan undangan. Pilihan desain menampilkan mockup sampul dan halaman undangan mobile; Live Preview berisi sampul, nama pasangan, orang tua (opsional), jadwal Akad, serta jadwal dan lokasi Resepsi (opsional). Rancangan dan foto tetap tersimpan sementara di memori aplikasi. Akun menggunakan Supabase Auth:
+Antarmuka menggunakan data lokal untuk rancangan undangan. Pilihan desain menampilkan mockup sampul dan halaman undangan mobile; Live Preview berisi sampul, nama pasangan, orang tua (opsional), jadwal Akad, serta jadwal dan lokasi Resepsi (opsional). Pengguna dapat memilih warna tema serta warna font dari swatch atau pemilih warna khusus. Rancangan dan foto tetap tersimpan sementara di memori aplikasi. Akun menggunakan Supabase Auth:
 
 - alur pembuatan: isi lengkap data pasangan dan acara, pilih template, atur foto/warna, lalu pratinjau
 - onboarding
