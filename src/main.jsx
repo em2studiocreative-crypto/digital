@@ -1,10 +1,11 @@
-import React, { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
 import './overrides.css'
 import { supabase, usernameAuthEmail } from './lib/supabaseClient.js'
 
 const VenueMapPicker = lazy(() => import('./VenueMapPicker.jsx'))
+const WeddingInvitation = lazy(() => import('./WeddingInvitation.jsx'))
 
 if ('serviceWorker' in navigator && import.meta.env.DEV) {
   navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister()))
@@ -95,8 +96,18 @@ const photoLayoutLabels = {
   wide: 'Foto lebar',
 }
 
+const themeLabels = {
+  Simple: 'Klasik Editorial',
+  'Full Color': 'Warna Cerita',
+  Natural: 'Botanical',
+  Tradisional: 'Nusantara',
+  Floral: 'Floral',
+  'Dengan Foto': 'Foto Pasangan',
+}
+
 function App() {
   const [screen, setScreen] = useState('welcome')
+  const hasNavigated = useRef(false)
   const [onboarding, setOnboarding] = useState(0)
   const [authMode, setAuthMode] = useState('login')
   const [username, setUsername] = useState('')
@@ -109,13 +120,31 @@ function App() {
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [selectedColor, setSelectedColor] = useState(0)
   const [activeNav, setActiveNav] = useState('home')
-  const [form, setForm] = useState({ groom: '', bride: '', eventDate: '', venue: '', city: '', address: '', photo: '' })
+  const [form, setForm] = useState({
+    groom: '',
+    bride: '',
+    groomParents: '',
+    brideParents: '',
+    eventDate: '',
+    akadTime: '',
+    venue: '',
+    city: '',
+    address: '',
+    receptionDate: '',
+    receptionTime: '',
+    receptionVenue: '',
+    receptionAddress: '',
+    photo: '',
+  })
   const [previewBackScreen, setPreviewBackScreen] = useState('colors')
   const [duration, setDuration] = useState(90)
   const [paymentStatus, setPaymentStatus] = useState('unpaid')
 
   const activeDraft = useMemo(() => drafts[0], [drafts])
-  const go = (next) => setScreen(next)
+  const go = (next) => {
+    hasNavigated.current = true
+    setScreen(next)
+  }
 
   useEffect(() => {
     const root = document.documentElement
@@ -130,7 +159,6 @@ function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!active || !session) return
       setCurrentUser(session.user.user_metadata?.username || '')
-      setScreen('home')
     })
 
     supabase.auth.getSession().then(({ data, error }) => {
@@ -140,7 +168,7 @@ function App() {
         setAuthMessage('Sesi akun tidak dapat dimuat. Silakan coba masuk kembali.')
       } else if (data.session) {
         setCurrentUser(data.session.user.user_metadata?.username || '')
-        setScreen('home')
+        if (!hasNavigated.current) setScreen('home')
       }
     }).catch((error) => {
       if (!active) return
@@ -234,7 +262,25 @@ function App() {
     if (drafts.length >= 2) return
     setSelectedTemplate(null)
     setSelectedColor(0)
-    setForm({ groom: '', bride: '', eventDate: '', venue: '', city: '', address: '', mapLink: '', latitude: null, longitude: null, photo: '' })
+    setForm({
+      groom: '',
+      bride: '',
+      groomParents: '',
+      brideParents: '',
+      eventDate: '',
+      akadTime: '',
+      venue: '',
+      city: '',
+      address: '',
+      mapLink: '',
+      latitude: null,
+      longitude: null,
+      receptionDate: '',
+      receptionTime: '',
+      receptionVenue: '',
+      receptionAddress: '',
+      photo: '',
+    })
     setPaymentStatus('unpaid')
     go('editor')
   }
@@ -246,7 +292,25 @@ function App() {
   }
   const openDraft = (draft) => {
     setDrafts((items) => [draft, ...items.filter((item) => item.id !== draft.id)])
-    setForm({ groom: draft.groom || '', bride: draft.bride || '', eventDate: draft.eventDate || '', venue: draft.venue || '', city: draft.city || '', address: draft.address || '', mapLink: draft.mapLink || '', latitude: draft.latitude ?? null, longitude: draft.longitude ?? null, photo: draft.photo || '' })
+    setForm({
+      groom: draft.groom || '',
+      bride: draft.bride || '',
+      groomParents: draft.groomParents || '',
+      brideParents: draft.brideParents || '',
+      eventDate: draft.eventDate || '',
+      akadTime: draft.akadTime || '',
+      venue: draft.venue || '',
+      city: draft.city || '',
+      address: draft.address || '',
+      mapLink: draft.mapLink || '',
+      latitude: draft.latitude ?? null,
+      longitude: draft.longitude ?? null,
+      receptionDate: draft.receptionDate || '',
+      receptionTime: draft.receptionTime || '',
+      receptionVenue: draft.receptionVenue || '',
+      receptionAddress: draft.receptionAddress || '',
+      photo: draft.photo || '',
+    })
     setSelectedTemplate(draft.template || null)
     setSelectedColor(draft.color || 0)
     setPreviewBackScreen('drafts')
@@ -281,7 +345,7 @@ function App() {
     <main className={`app-shell ${screen === 'welcome' ? 'welcome-app-shell' : ''} ${screen === 'login' ? 'auth-app-shell' : ''} ${screen === 'home' ? 'home-app-shell' : ''}`}>
       {screen === 'welcome' && <Welcome onboarding={onboarding} setOnboarding={setOnboarding} onStart={startApp} />}
       {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} busy={authBusy} onSubmit={submitAuth} />}
-      {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpen={setScreen} />}
+      {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpen={go} />}
       {screen === 'templates' && <TemplateGallery onBack={() => go('editor')} selected={selectedTemplate} setSelected={setSelectedTemplate} onUse={() => go('colors')} />}
       {screen === 'drafts' && <DraftsPage drafts={drafts} onBack={() => go('home')} onCreate={createDraft} onOpenDraft={openDraft} />}
       {screen === 'profile' && <ProfilePage username={currentUser} draftCount={drafts.length} onBack={() => go('home')} onLogout={logout} />}
@@ -500,7 +564,7 @@ function TemplateArt({ item, className = '', children, colorIndex = 0, photo = '
   const isPhotoTemplate = Boolean(item?.photoLayout)
   const content = children || <div className="art-copy"><span>UNDANGAN PERNIKAHAN</span><strong>Nama <i>&amp;</i> Nama</strong><small>12 · 12 · 26</small></div>
   return <div className={`template-art art-${art} ${className}`} style={style}>
-    <span className="art-type">{item?.type || 'Simple'}</span>
+    <span className="art-type">{themeLabels[item?.type] || item?.type || 'Klasik Editorial'}</span>
     {isPhotoTemplate && <div className="photo-frame" aria-hidden="true">
       {photo ? <img className="photo-image" src={photo} alt="" /> : <span className="photo-placeholder" />}
     </div>}
@@ -513,10 +577,27 @@ function TemplateGallery({ onBack, selected, setSelected, onUse }) {
   const [filter, setFilter] = useState('Semua')
   const filters = ['Semua', ...new Set(templates.map((item) => item.type))]
   const shown = filter === 'Semua' ? templates : templates.filter((item) => item.type === filter)
-  return <section className="plain-screen"><Header title="Pilih Template" onBack={onBack} action={<button type="button" className="icon-button" aria-label="Cari"><Icon name="search" /></button>} /><div className="screen-intro"><p className="eyebrow">Langkah 2 dari 6</p><h1>Temukan yang terasa seperti kamu.</h1><p className="template-helper">Data acara sudah siap. Sekarang pilih desain undangan; foto dapat ditambahkan setelah memilih template foto.</p></div><button type="button" className={selected ? 'selection-hint selected' : 'selection-hint'} onClick={() => { if (selected) onUse() }} aria-label={selected ? 'Lanjutkan mengatur desain' : 'Petunjuk memilih template'}><Icon name={selected ? 'check' : 'grid'} size={17} /><span>{selected ? `Template “${selected.title}” dipilih. Ketuk di sini untuk mengatur warna dan foto.` : 'Pilih konsep simple, full color, natural, tradisional, floral, atau dengan foto.'}</span></button><div className="filter-row">{filters.map((item) => <button type="button" key={item} className={filter === item ? 'filter active' : 'filter'} onClick={() => setFilter(item)}>{item}</button>)}</div><div className="template-grid">{shown.map((item) => <TemplateCard key={item.id} item={item} selected={selected?.id === item.id} onClick={() => setSelected(item)} />)}</div>{selected && <div className="sticky-action"><div><span className="eyebrow">Template dipilih</span><strong>{selected.title}</strong><small>{selected.photoLayout ? `${photoLayoutLabels[selected.photoLayout]} · ` : 'Tanpa foto · '}{selected.colors.length} pilihan warna</small></div><button type="button" className="primary-button" onClick={onUse}>Lanjut atur desain <Icon name="arrow" size={17} /></button></div>}</section>
+  return <section className="plain-screen"><Header title="Pilih Template" onBack={onBack} action={<button type="button" className="icon-button" aria-label="Cari"><Icon name="search" /></button>} /><div className="screen-intro"><p className="eyebrow">Langkah 2 dari 6</p><h1>Pilih bentuk undangan digitalmu.</h1><p className="template-helper">Setiap desain kini menampilkan contoh sampul dan halaman undangan di layar ponsel. Pilih gaya, lalu sesuaikan foto dan warnanya.</p></div><button type="button" className={selected ? 'selection-hint selected' : 'selection-hint'} onClick={() => { if (selected) onUse() }} aria-label={selected ? 'Lanjutkan mengatur desain' : 'Petunjuk memilih template'}><Icon name={selected ? 'check' : 'grid'} size={17} /><span>{selected ? `Template “${selected.title}” dipilih. Ketuk di sini untuk mengatur warna dan foto.` : 'Pilih gaya klasik editorial, warna ceria, botanical, Nusantara, floral, atau foto pasangan.'}</span></button><div className="filter-row">{filters.map((item) => <button type="button" key={item} className={filter === item ? 'filter active' : 'filter'} onClick={() => setFilter(item)}>{themeLabels[item]}</button>)}</div><div className="template-grid">{shown.map((item) => <TemplateCard key={item.id} item={item} selected={selected?.id === item.id} onClick={() => setSelected(item)} />)}</div>{selected && <div className="sticky-action"><div><span className="eyebrow">Template dipilih</span><strong>{selected.title}</strong><small>{selected.photoLayout ? `${photoLayoutLabels[selected.photoLayout]} · ` : 'Undangan digital · '}{selected.colors.length} pilihan warna</small></div><button type="button" className="primary-button" onClick={onUse}>Lanjut atur desain <Icon name="arrow" size={17} /></button></div>}</section>
 }
 
-function TemplateCard({ item, selected, compact, onClick }) { return <button type="button" className={`template-card ${compact ? 'compact' : ''} ${selected ? 'selected' : ''}`} onClick={onClick} aria-pressed={selected}><TemplateArt item={item} className="template-image" />{selected && <span className="selected-badge"><Icon name="check" size={14} /></span>}<div className="template-meta"><div><h3>{item.title}</h3><p>{selected ? 'Dipilih · lanjutkan di bawah' : `${item.photoLayout ? photoLayoutLabels[item.photoLayout] : 'Tanpa foto'} · ${item.colors.length} warna`}</p></div><span className="round-arrow"><Icon name="chevron" size={17} /></span></div></button> }
+function TemplateCard({ item, selected, compact, onClick }) {
+  const colors = item.colors
+  const style = {
+    '--art-primary': colors[0],
+    '--art-secondary': colors[1],
+    '--art-accent': colors[2],
+  }
+  return <button type="button" className={`template-card ${compact ? 'compact' : ''} ${selected ? 'selected' : ''}`} onClick={onClick} aria-pressed={selected}>
+    <div className={`template-showcase showcase-${item.art}`} style={style}>
+      <div className="showcase-device showcase-side showcase-left"><div className="showcase-topline" /><div className="showcase-image" /><div className="showcase-lines"><i /><i /><i /></div><span className="showcase-caption">OUR STORY</span></div>
+      <div className="showcase-device showcase-main"><div className="showcase-topline" /><div className="showcase-cover"><span>THE WEDDING OF</span><strong>Nama <i>&amp;</i> Nama</strong><small>Save the date</small><span className="showcase-cover-button">Buka Undangan</span></div></div>
+      <div className="showcase-device showcase-side showcase-right"><div className="showcase-topline" /><span className="showcase-monogram">N <i>&amp;</i> N</span><span className="showcase-caption">RANGKAIAN ACARA</span><div className="showcase-lines"><i /><i /><i /><i /></div><span className="showcase-pin">LOKASI</span></div>
+      <span className="showcase-label">{themeLabels[item.type]}</span>
+    </div>
+    {selected && <span className="selected-badge"><Icon name="check" size={14} /></span>}
+    <div className="template-meta"><div><h3>{item.title}</h3><p>{selected ? 'Dipilih · lanjutkan di bawah' : `${item.photoLayout ? photoLayoutLabels[item.photoLayout] : 'Sampul + halaman acara'} · ${item.colors.length} warna`}</p></div><span className="round-arrow"><Icon name="chevron" size={17} /></span></div>
+  </button>
+}
 
 function Editor({ form, setForm, onBack, onNext }) {
   const [dataError, setDataError] = useState('')
@@ -636,27 +717,48 @@ function Editor({ form, setForm, onBack, onNext }) {
         <div className="editor-fields">
           <div className={`editor-field ${form.groom.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="groom">Nama mempelai pria <span>Wajib diisi</span></label><input id="groom" className="text-input" autoComplete="name" value={form.groom} onChange={(e) => update('groom', e.target.value)} placeholder="Contoh: Bagas Pratama" aria-required="true" /></div>
           <div className={`editor-field ${form.bride.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="bride">Nama mempelai wanita <span>Wajib diisi</span></label><input id="bride" className="text-input" autoComplete="name" value={form.bride} onChange={(e) => update('bride', e.target.value)} placeholder="Contoh: Andini Larasati" aria-required="true" /></div>
+          <div className={`editor-field ${form.groomParents.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="groom-parents">Nama orang tua mempelai pria <span>Opsional</span></label><input id="groom-parents" className="text-input" value={form.groomParents} onChange={(e) => update('groomParents', e.target.value)} placeholder="Contoh: Bapak Arif & Ibu Ratna" /></div>
+          <div className={`editor-field ${form.brideParents.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="bride-parents">Nama orang tua mempelai wanita <span>Opsional</span></label><input id="bride-parents" className="text-input" value={form.brideParents} onChange={(e) => update('brideParents', e.target.value)} placeholder="Contoh: Bapak Dedi & Ibu Sari" /></div>
         </div>
       </section>
       <section className="editor-form-section" aria-labelledby="event-section-title">
-        <div className="editor-section-heading"><span className="editor-section-icon"><Icon name="clock" size={19} /></span><div><p className="eyebrow">Bagian 02 · Waktu</p><h2 id="event-section-title">Kapan acaranya?</h2><p>Pilih tanggal untuk hari pernikahan kalian.</p></div></div>
-        <div className={`editor-field ${form.eventDate ? 'has-value' : ''}`}><label className="field-label" htmlFor="date">Tanggal acara <span>Wajib diisi</span></label><div className="editor-input-wrap date-input-wrap"><Icon name="calendar" size={19} /><input id="date" className="text-input" type="date" value={form.eventDate} onChange={(e) => update('eventDate', e.target.value)} aria-required="true" /></div></div>
+        <div className="editor-section-heading"><span className="editor-section-icon"><Icon name="clock" size={19} /></span><div><p className="eyebrow">Bagian 02 · Jadwal</p><h2 id="event-section-title">Atur rangkaian acara</h2><p>Isi jadwal Akad. Resepsi dapat ditambahkan bila ada.</p></div></div>
+        <div className="editor-fields">
+          <div className={`editor-field ${form.eventDate ? 'has-value' : ''}`}><label className="field-label" htmlFor="date">Tanggal Akad <span>Wajib diisi</span></label><div className="editor-input-wrap date-input-wrap"><Icon name="calendar" size={19} /><input id="date" className="text-input" type="date" value={form.eventDate} onChange={(e) => update('eventDate', e.target.value)} aria-required="true" /></div></div>
+          <div className={`editor-field ${form.akadTime ? 'has-value' : ''}`}><label className="field-label" htmlFor="akad-time">Waktu Akad <span>Opsional</span></label><input id="akad-time" className="text-input" type="time" value={form.akadTime} onChange={(e) => update('akadTime', e.target.value)} /></div>
+        </div>
+        <div className="event-subsection">
+          <div className="event-subsection-heading"><strong>Resepsi</strong><span>Opsional</span></div>
+          <p>Tambahkan jadwal resepsi jika berbeda dari Akad.</p>
+          <div className="editor-fields">
+            <div className={`editor-field ${form.receptionDate ? 'has-value' : ''}`}><label className="field-label" htmlFor="reception-date">Tanggal resepsi <span>Opsional</span></label><input id="reception-date" className="text-input" type="date" value={form.receptionDate} onChange={(e) => update('receptionDate', e.target.value)} /></div>
+            <div className={`editor-field ${form.receptionTime ? 'has-value' : ''}`}><label className="field-label" htmlFor="reception-time">Waktu resepsi <span>Opsional</span></label><input id="reception-time" className="text-input" type="time" value={form.receptionTime} onChange={(e) => update('receptionTime', e.target.value)} /></div>
+          </div>
+        </div>
       </section>
       <section className="editor-form-section" aria-labelledby="location-section-title">
-        <div className="editor-section-heading"><span className="editor-section-icon"><Icon name="pin" size={19} /></span><div><p className="eyebrow">Bagian 03 · Lokasi</p><h2 id="location-section-title">Di mana acaranya?</h2><p>Tambahkan nama tempat dan kota agar tamu mudah menemukan lokasi.</p></div></div>
+        <div className="editor-section-heading"><span className="editor-section-icon"><Icon name="pin" size={19} /></span><div><p className="eyebrow">Bagian 03 · Lokasi</p><h2 id="location-section-title">Di mana acaranya?</h2><p>Isi lokasi Akad. Lokasi resepsi dapat ditambahkan bila berbeda.</p></div></div>
         <div className="editor-fields">
           <div className={`editor-field ${form.city.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="city">Kota / kabupaten <span>Wajib diisi</span></label><input id="city" className="text-input" autoComplete="address-level2" value={form.city} onChange={(e) => update('city', e.target.value)} placeholder="Contoh: Jakarta Selatan" aria-required="true" /></div>
-          <div className={`editor-field ${form.venue.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="venue">Nama tempat <span>Wajib diisi</span></label><input id="venue" className="text-input" autoComplete="organization" value={form.venue} onChange={(e) => update('venue', e.target.value)} placeholder="Contoh: Gedung Kartika" aria-required="true" /></div>
-          <div className={`editor-field ${form.address.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="address">Alamat lengkap <span>Wajib diisi</span></label><input id="address" className="text-input" autoComplete="street-address" value={form.address} onChange={(e) => update('address', e.target.value)} placeholder="Contoh: Jl. Melati No. 12, Kebayoran Baru" aria-required="true" /><small>{mapSearchState === 'searching' ? 'Mencari alamat di peta…' : mapSearchState === 'found' ? 'Alamat ditemukan dan titik peta diperbarui.' : mapSearchState === 'not-found' ? 'Alamat tidak ditemukan. Gunakan Lokasi saya atau geser pin di peta.' : mapSearchState === 'error' ? 'Pencarian alamat gagal. Periksa koneksi, lalu gunakan Lokasi saya atau geser pin di peta.' : 'Peta akan mencari alamat setelah kamu berhenti mengetik.'}</small></div>
+          <div className={`editor-field ${form.venue.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="venue">Nama tempat Akad <span>Wajib diisi</span></label><input id="venue" className="text-input" autoComplete="organization" value={form.venue} onChange={(e) => update('venue', e.target.value)} placeholder="Contoh: Masjid Al-Ikhlas" aria-required="true" /></div>
+          <div className={`editor-field ${form.address.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="address">Alamat Akad <span>Wajib diisi</span></label><input id="address" className="text-input" autoComplete="street-address" value={form.address} onChange={(e) => update('address', e.target.value)} placeholder="Contoh: Jl. Melati No. 12, Kebayoran Baru" aria-required="true" /><small>{mapSearchState === 'searching' ? 'Mencari alamat di peta…' : mapSearchState === 'found' ? 'Alamat ditemukan dan titik peta diperbarui.' : mapSearchState === 'not-found' ? 'Alamat tidak ditemukan. Gunakan Lokasi saya atau geser pin di peta.' : mapSearchState === 'error' ? 'Pencarian alamat gagal. Periksa koneksi, lalu gunakan Lokasi saya atau geser pin di peta.' : 'Peta akan mencari alamat setelah kamu berhenti mengetik.'}</small></div>
         </div>
         <div className="editor-map-settings">
-          <div className="editor-map-heading"><div><strong>Tandai lokasi di peta</strong><p>Alamat akan dicari otomatis. Jika tidak ditemukan, gunakan Lokasi saya lalu geser pin, atau ketuk titik yang tepat pada peta.</p></div><button type="button" className="map-locate-button" onClick={locateDevice}><Icon name="pin" size={16} /> Lokasi saya</button></div>
+          <div className="editor-map-heading"><div><strong>Tandai lokasi Akad di peta</strong><p>Alamat akan dicari otomatis. Jika tidak ditemukan, gunakan Lokasi saya lalu geser pin, atau ketuk titik yang tepat pada peta.</p></div><button type="button" className="map-locate-button" onClick={locateDevice}><Icon name="pin" size={16} /> Lokasi saya</button></div>
           <Suspense fallback={<div className="venue-map map-loading" role="status">Memuat peta…</div>}>
             <VenueMapPicker latitude={form.latitude} longitude={form.longitude} onPick={selectMapLocation} />
           </Suspense>
           {Number.isFinite(form.latitude) && Number.isFinite(form.longitude) && <p className="map-coordinates" role="status">Pin dipilih · {form.latitude.toFixed(5)}, {form.longitude.toFixed(5)}</p>}
           {mapMessage && <p className="map-message" role="status">{mapMessage}</p>}
-          <div className={`editor-field map-link-field ${form.mapLink.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="map-link">Link Google Maps <span>Opsional</span></label><input id="map-link" className="text-input" type="url" inputMode="url" autoComplete="url" value={form.mapLink} onChange={(e) => update('mapLink', e.target.value)} placeholder="Tempel link Google Maps di sini" /><small>{Number.isFinite(form.latitude) ? 'Link dibuat otomatis dari pin; kamu tetap bisa menggantinya.' : 'Tempel link Google Maps, atau pilih titik di peta untuk membuat link otomatis.'}</small></div>
+          <div className={`editor-field map-link-field ${form.mapLink.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="map-link">Link Google Maps Akad <span>Opsional</span></label><input id="map-link" className="text-input" type="url" inputMode="url" autoComplete="url" value={form.mapLink} onChange={(e) => update('mapLink', e.target.value)} placeholder="Tempel link Google Maps di sini" /><small>{Number.isFinite(form.latitude) ? 'Link dibuat otomatis dari pin; kamu tetap bisa menggantinya.' : 'Tempel link Google Maps, atau pilih titik di peta untuk membuat link otomatis.'}</small></div>
+        </div>
+        <div className="event-subsection">
+          <div className="event-subsection-heading"><strong>Lokasi resepsi</strong><span>Opsional</span></div>
+          <p>Kosongkan jika resepsi berlangsung di tempat yang sama dengan Akad.</p>
+          <div className="editor-fields">
+            <div className={`editor-field ${form.receptionVenue.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="reception-venue">Nama tempat resepsi <span>Opsional</span></label><input id="reception-venue" className="text-input" value={form.receptionVenue} onChange={(e) => update('receptionVenue', e.target.value)} placeholder="Contoh: Aula Taman Cempaka" /></div>
+            <div className={`editor-field ${form.receptionAddress.trim() ? 'has-value' : ''}`}><label className="field-label" htmlFor="reception-address">Alamat resepsi <span>Opsional</span></label><input id="reception-address" className="text-input" autoComplete="street-address" value={form.receptionAddress} onChange={(e) => update('receptionAddress', e.target.value)} placeholder="Alamat lengkap lokasi resepsi" /></div>
+          </div>
         </div>
       </section>
     </div>
@@ -717,24 +819,41 @@ function ColorSelection({ template, photo, setPhoto, selectedColor, setSelectedC
   </section>
 }
 
+function formatInvitationDate(value) {
+  if (!value) return ''
+  return new Date(`${value}T00:00:00`).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+function formatInvitationTime(value) {
+  if (!value) return ''
+  return `${value} WIB`
+}
+
 function Preview({ draft, onBack, onPublish }) {
   const [liveOpen, setLiveOpen] = useState(false)
   const couple = `${draft?.groom || 'Bagas'} & ${draft?.bride || 'Andini'}`
+  const eventSummary = [
+    { label: 'Akad Nikah', date: draft?.eventDate, time: draft?.akadTime, venue: draft?.venue, address: draft?.address },
+    ...(draft?.receptionDate || draft?.receptionTime || draft?.receptionVenue || draft?.receptionAddress
+      ? [{ label: 'Resepsi', date: draft.receptionDate, time: draft.receptionTime, venue: draft.receptionVenue || draft.venue, address: draft.receptionAddress || draft.address }]
+      : []),
+  ]
   return <section className="plain-screen">
     <Header title="Pratinjau Undangan" onBack={onBack} action={<span className="step-count">4 dari 6</span>} />
-    <div className="preview-note"><Icon name="check" size={17} /><span>Periksa kembali nama, tanggal, lokasi, dan warna sebelum mengaktifkan undangan.</span></div>
+    <div className="preview-note"><Icon name="check" size={17} /><span>Pratinjau sampul undangan digital. Buka Live Preview untuk melihat seluruh halaman acara.</span></div>
     <TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="invitation-preview">
       <div className="preview-content">
-        <span className="eyebrow">UNDANGAN PERNIKAHAN{draft?.photo ? ' · FOTO' : ''}</span>
+        <span className="eyebrow">SAVE THE DATE</span>
         <h1>{couple}</h1>
-        <p>{draft?.eventDate ? new Date(draft.eventDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Sabtu, 12 Desember 2026'}</p>
+        <p>{formatInvitationDate(draft?.eventDate)}</p>
         <div className="preview-divider" />
-        <p className="preview-venue">{draft?.venue || 'Gedung Pernikahan'}<br />{draft?.address && <>{draft.address}<br /></>}{draft?.city || 'Jakarta'}</p>
+        <p className="preview-venue">Akad Nikah<br />{draft?.venue || 'Gedung Pernikahan'}<br />{draft?.address && <>{draft.address}<br /></>}{draft?.city || 'Jakarta'}</p>
       </div>
     </TemplateArt>
-    {draft?.mapLink && <a className="map-preview-link" href={draft.mapLink} target="_blank" rel="noreferrer"><Icon name="pin" size={18} /><span><strong>Buka lokasi acara</strong><small>{draft.address || draft.venue}{draft.city ? ` · ${draft.city}` : ''}</small></span><Icon name="arrow" size={18} /></a>}
-    <button className="live-preview-button" onClick={() => setLiveOpen(true)}><span className="play-badge"><Icon name="play" size={14} /></span><span><strong>Jalankan Live Preview</strong><small>Lihat persis seperti yang akan dibuka tamu</small></span><Icon name="chevron" size={18} /></button>
-    <div className="preview-sections"><div className="mini-feature"><Icon name="clock" /><div><strong>Countdown</strong><span>Aktif di undangan</span></div><Icon name="check" size={17} /></div><div className="mini-feature"><Icon name="camera" /><div><strong>Galeri & musik</strong><span>Siap ditambahkan</span></div><Icon name="check" size={17} /></div><div className="mini-feature"><Icon name="file" /><div><strong>RSVP & ucapan</strong><span>Aktif untuk tamu</span></div><Icon name="check" size={17} /></div></div>
+    <div className="preview-event-list">{eventSummary.map((event) => <div className="preview-event-card" key={event.label}><span className="eyebrow">{event.label}</span><strong>{formatInvitationDate(event.date) || 'Tanggal belum diatur'}{event.time && ` · ${formatInvitationTime(event.time)}`}</strong><small>{event.venue || 'Tempat acara'}{event.address ? ` · ${event.address}` : ''}</small></div>)}</div>
+    {draft?.mapLink && <a className="map-preview-link" href={draft.mapLink} target="_blank" rel="noreferrer"><Icon name="pin" size={18} /><span><strong>Buka lokasi Akad</strong><small>{draft.address || draft.venue}{draft.city ? ` · ${draft.city}` : ''}</small></span><Icon name="arrow" size={18} /></a>}
+    <button className="live-preview-button" onClick={() => setLiveOpen(true)}><span className="play-badge"><Icon name="play" size={14} /></span><span><strong>Lihat undangan seperti tamu</strong><small>Sampul, profil pasangan, jadwal, dan lokasi acara</small></span><Icon name="chevron" size={18} /></button>
+    <div className="preview-sections"><div className="mini-feature"><Icon name="clock" /><div><strong>Jadwal acara</strong><span>{eventSummary.length} rangkaian ditampilkan</span></div><Icon name="check" size={17} /></div><div className="mini-feature"><Icon name="camera" /><div><strong>{draft?.photo ? 'Foto sampul terpasang' : 'Desain undangan'}</strong><span>{draft?.template?.title || 'Template pilihan'}</span></div><Icon name="check" size={17} /></div></div>
     <div className="bottom-action"><button className="primary-button full" onClick={onPublish}>Lanjut aktivasi <Icon name="arrow" size={17} /></button></div>
     {liveOpen && <LivePreview couple={couple} draft={draft} onClose={() => setLiveOpen(false)} />}
   </section>
@@ -745,7 +864,7 @@ function LivePreview({ couple, draft, onClose }) {
   const [rsvp, setRsvp] = useState(false)
   return <div className="live-overlay">
     <div className="live-topbar"><div><span className="eyebrow light-text">Mode tamu</span><strong>Live Preview</strong></div><button className="icon-button light" onClick={onClose} aria-label="Tutup live preview"><Icon name="close" /></button></div>
-    {!opened ? <TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="live-cover"><div className="live-cover-content"><span className="eyebrow">UNDANGAN PERNIKAHAN{draft?.photo ? ' · FOTO' : ''}</span><h1>{couple}</h1><p>Dengan penuh kebahagiaan, kami mengundang Anda untuk hadir di hari istimewa kami.</p><button className="light-button" onClick={() => setOpened(true)}>Buka Undangan <Icon name="arrow" size={17} /></button></div></TemplateArt> : <div className="live-scroll"><TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="live-photo" /><div className="live-body"><span className="eyebrow">The wedding of</span><h1>{couple}</h1><p className="live-date">{draft?.eventDate || '12 Desember 2026'} · {draft?.venue || 'Gedung Pernikahan'}</p>{draft?.address && <p className="live-date">{draft.address}, {draft.city}</p>}<div className="countdown-row"><div><strong>12</strong><span>Hari</span></div><div><strong>08</strong><span>Jam</span></div><div><strong>34</strong><span>Menit</span></div><div><strong>21</strong><span>Detik</span></div></div><div className="live-info"><h2>Menuju hari bahagia</h2><p>Mohon doa dan restu untuk perjalanan baru kami. Kehadiran Anda adalah hadiah yang berarti.</p>{draft?.mapLink && <a className="outline-button full" href={draft.mapLink} target="_blank" rel="noreferrer">Lihat lokasi <Icon name="arrow" size={16} /></a>}</div><div className="live-info"><h2>Konfirmasi kehadiran</h2>{rsvp ? <p className="rsvp-success"><Icon name="check" size={16} /> Terima kasih, konfirmasi tersimpan.</p> : <button className="primary-button full" onClick={() => setRsvp(true)}>Isi RSVP <Icon name="arrow" size={17} /></button>}</div></div></div>}
+    <div className="live-scroll"><Suspense fallback={<div className="wedding-loading" role="status">Memuat pratinjau undangan…</div>}><WeddingInvitation couple={couple} draft={draft} opened={opened} onOpen={() => setOpened(true)} rsvp={rsvp} onRsvp={() => setRsvp(true)} /></Suspense></div>
   </div>
 }
 

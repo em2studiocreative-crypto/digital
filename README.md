@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Antarmuka menggunakan data lokal untuk rancangan undangan. Akun menggunakan Supabase Auth:
+Antarmuka menggunakan data lokal untuk rancangan undangan. Pilihan desain menampilkan mockup sampul dan halaman undangan mobile; Live Preview berisi sampul, nama pasangan, orang tua (opsional), jadwal Akad, serta jadwal dan lokasi Resepsi (opsional). Rancangan dan foto tetap tersimpan sementara di memori aplikasi. Akun menggunakan Supabase Auth:
 
 - alur pembuatan: isi lengkap data pasangan dan acara, pilih template, atur foto/warna, lalu pratinjau
 - onboarding
@@ -22,7 +22,7 @@ Antarmuka menggunakan data lokal untuk rancangan undangan. Akun menggunakan Supa
 - status pembayaran manual
 - link undangan
 
-Bagian lokasi menyediakan pencarian otomatis alamat melalui OpenStreetMap Nominatim, pemilih peta interaktif, opsi lokasi perangkat, dan kolom link Google Maps. Jika pencarian tidak menemukan alamat, pengguna dapat memakai lokasi perangkat, menggeser pin, atau mengetuk titik pada peta. Pin yang dipilih menghasilkan link Google Maps untuk pratinjau undangan. Pencarian alamat dan peta memerlukan koneksi internet; hasilnya menggunakan Nominatim, bukan Google Geocoding API.
+Bagian lokasi Akad menyediakan pencarian otomatis alamat melalui OpenStreetMap Nominatim, pemilih peta interaktif, opsi lokasi perangkat, dan kolom link Google Maps. Jika pencarian tidak menemukan alamat, pengguna dapat memakai lokasi perangkat, menggeser pin, atau mengetuk titik pada peta. Pin yang dipilih menghasilkan link Google Maps untuk pratinjau undangan. Alamat Resepsi opsional menghasilkan link pencarian Google Maps pada Live Preview. Pencarian alamat dan peta memerlukan koneksi internet; hasilnya menggunakan Nominatim, bukan Google Geocoding API.
 
 Tema **Dengan Foto** menyediakan lima tata letak dengan warna dan posisi foto berbeda. Foto JPG, PNG, atau WebP hingga 5 MB dapat dipilih pada editor; untuk saat ini foto dan rancangan hanya tersimpan sementara di memori aplikasi, sehingga tidak bertahan setelah halaman dimuat ulang dan belum ikut ke link undangan publik. Penyimpanan foto permanen memerlukan integrasi storage.
 
