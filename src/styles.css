@@ -207,6 +207,31 @@ h1, h2 { font-family: 'Playfair Display', serif; font-weight: 500; letter-spacin
 .art-traditional::after { border-color: color-mix(in srgb, var(--art-accent), transparent 48%); }
 .art-floral { background: radial-gradient(ellipse at 10% 12%, color-mix(in srgb, var(--art-accent), white 38%) 0 13%, transparent 14%), radial-gradient(ellipse at 90% 90%, var(--art-secondary) 0 17%, transparent 18%), linear-gradient(135deg, color-mix(in srgb, var(--art-primary), white 38%), var(--art-primary)); }
 .art-floral::before { width: 59%; border-radius: 45% 8% 45% 8%; transform: rotate(18deg); }
+.art-photo { display: block; background: var(--art-primary); }
+.art-photo::before, .art-photo::after { display: none; }
+.photo-frame { position: absolute; z-index: 0; overflow: hidden; background: var(--art-primary); }
+.photo-image { display: block; width: 100%; height: 100%; object-fit: cover; }
+.photo-placeholder { position: absolute; inset: 0; overflow: hidden; display: block; background: radial-gradient(ellipse at 70% 22%, color-mix(in srgb, var(--art-accent), white 26%) 0 15%, transparent 16%), radial-gradient(ellipse at 25% 80%, color-mix(in srgb, var(--art-secondary), white 22%) 0 27%, transparent 28%), linear-gradient(145deg, var(--art-primary), color-mix(in srgb, var(--art-primary), var(--art-secondary) 45%)); }
+.photo-placeholder::before, .photo-placeholder::after { content: ''; position: absolute; border: 1px solid rgba(255,255,255,.55); border-radius: 50%; }
+.photo-placeholder::before { width: 42%; aspect-ratio: 1; top: 16%; left: 28%; box-shadow: 0 0 0 9px rgba(255,255,255,.12); }
+.photo-placeholder::after { width: 72%; height: 45%; bottom: -27%; left: 14%; border-radius: 50% 50% 0 0; background: color-mix(in srgb, var(--art-secondary), transparent 35%); }
+.photo-layout-cover .photo-frame { inset: 0; }
+.photo-layout-cover .photo-frame::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,25,20,.02) 28%, rgba(20,25,20,.72)); }
+.photo-layout-cover .photo-copy { position: absolute; z-index: 1; inset: auto 0 0; display: grid; place-items: center; padding: 18px 12px 28px; color: #fff; text-align: center; }
+.photo-layout-cover .photo-copy :is(h1, h2, p, span, small, strong) { color: #fff !important; }
+.photo-layout-cover .photo-copy :is(h1, h2) { text-shadow: 0 2px 12px rgba(0,0,0,.35); }
+.photo-layout-cover .art-type, .photo-layout-cover .art-privacy { color: #fff; }
+.photo-layout-top .photo-frame { inset: 0 0 auto; height: 52%; }
+.photo-layout-top .photo-copy { position: absolute; z-index: 1; inset: 52% 0 0; display: grid; place-items: center; padding: 8px; background: linear-gradient(145deg, var(--art-primary), color-mix(in srgb, var(--art-primary), white 25%)); text-align: center; }
+.photo-layout-frame .photo-frame { top: 7%; left: 25%; width: 50%; height: 57%; border: 4px solid var(--art-accent); border-radius: 48% 48% 12px 12px; box-shadow: 0 0 0 7px color-mix(in srgb, var(--art-accent), transparent 82%); }
+.photo-layout-frame .photo-copy { position: absolute; z-index: 1; inset: 67% 0 0; display: grid; place-items: center; padding: 4px 8px 18px; text-align: center; }
+.photo-layout-side .photo-frame { inset: 0 auto 0 0; width: 43%; }
+.photo-layout-side .photo-copy { position: absolute; z-index: 1; inset: 0 0 0 43%; display: grid; place-items: center; padding: 8px; background: linear-gradient(145deg, var(--art-primary), color-mix(in srgb, var(--art-primary), white 25%)); text-align: center; }
+.photo-layout-wide .photo-frame { inset: 7% 7% auto; height: 61%; border: 3px solid var(--art-accent); border-radius: 8px 38px 8px 8px; }
+.photo-layout-wide .photo-copy { position: absolute; z-index: 1; inset: 70% 0 0; display: grid; place-items: center; padding: 4px 8px 17px; text-align: center; }
+.photo-layout-cover .art-copy, .photo-layout-top .art-copy, .photo-layout-frame .art-copy, .photo-layout-side .art-copy, .photo-layout-wide .art-copy { max-width: 100%; }
+.photo-layout-top .art-type, .photo-layout-frame .art-type, .photo-layout-side .art-type, .photo-layout-wide .art-type { z-index: 2; }
+.photo-layout-frame .photo-frame .photo-placeholder { border-radius: inherit; }
 .art-type, .art-privacy { position: absolute; z-index: 1; font-family: 'DM Sans', sans-serif; font-size: 8px; font-weight: 700; letter-spacing: 1.15px; text-transform: uppercase; }
 .art-type { top: 11px; left: 11px; }
 .art-privacy { right: 10px; bottom: 10px; padding: 4px 6px; border: 1px solid currentColor; border-radius: 2px; font-size: 7px; letter-spacing: .8px; }
@@ -215,6 +240,17 @@ h1, h2 { font-family: 'Playfair Display', serif; font-weight: 500; letter-spacin
 .art-copy > strong { font-family: 'Playfair Display', serif; font-size: clamp(14px, 3.8vw, 22px); font-weight: 500; line-height: 1; }
 .art-copy > strong i { color: var(--art-accent); font-weight: 500; }
 .art-copy > small { opacity: .75; }
+.photo-upload-section { padding-top: 4px; }
+.photo-upload-section .template-helper { margin-bottom: 14px; }
+.photo-upload { min-height: 70px; padding: 11px 13px; display: flex; align-items: center; gap: 12px; border: 1px dashed #b8c5b5; border-radius: 15px; background: #f7f8f2; color: var(--forest); cursor: pointer; }
+.photo-upload input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+.photo-upload:focus-within { outline: 3px solid rgba(184, 147, 91, .55); outline-offset: 3px; }
+.photo-upload-icon { width: 40px; height: 40px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 12px; background: #e9eee4; color: var(--forest); }
+.photo-upload strong, .photo-upload small { display: block; }
+.photo-upload strong { font-size: 12px; }
+.photo-upload small { margin-top: 3px; color: var(--muted); font-size: 10px; }
+.photo-remove { margin-top: 8px; }
+.field-error { margin: 9px 0 0; color: #a0473d; font-size: 12px; }
 .compact .art-copy { gap: 4px; }
 .compact .art-copy > span, .compact .art-copy > small { font-size: 5px; letter-spacing: .8px; }
 .compact .art-copy > strong { font-size: clamp(10px, 3vw, 14px); }

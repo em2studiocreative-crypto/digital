@@ -76,7 +76,20 @@ const templates = [
   { id: 23, title: 'Bunga Senja', type: 'Floral', art: 'floral', colors: ['#d9b3b0', '#f4e8d9', '#876578'] },
   { id: 24, title: 'Kebun Cinta', type: 'Floral', art: 'floral', colors: ['#e8cbb1', '#f8f0df', '#8a8b68'] },
   { id: 25, title: 'Kelopak Kasih', type: 'Floral', art: 'floral', colors: ['#dfbfc9', '#f7ede8', '#986f83'] },
+  { id: 26, title: 'Sampul Senja', type: 'Dengan Foto', art: 'photo', photoLayout: 'cover', colors: ['#8c5a45', '#f4e3d3', '#e6bb75'] },
+  { id: 27, title: 'Potret Pagi', type: 'Dengan Foto', art: 'photo', photoLayout: 'top', colors: ['#e7e1d3', '#4b6358', '#c4a878'] },
+  { id: 28, title: 'Bingkai Kenangan', type: 'Dengan Foto', art: 'photo', photoLayout: 'frame', colors: ['#e8d9d1', '#744f56', '#c59078'] },
+  { id: 29, title: 'Ruang Cerita', type: 'Dengan Foto', art: 'photo', photoLayout: 'side', colors: ['#d7e0d4', '#40594d', '#a8855d'] },
+  { id: 30, title: 'Arsip Cinta', type: 'Dengan Foto', art: 'photo', photoLayout: 'wide', colors: ['#e8d7b8', '#4c4a40', '#ba795e'] },
 ]
+
+const photoLayoutLabels = {
+  cover: 'Foto latar',
+  top: 'Foto atas',
+  frame: 'Foto bingkai',
+  side: 'Foto samping',
+  wide: 'Foto lebar',
+}
 
 function App() {
   const [screen, setScreen] = useState('welcome')
@@ -92,7 +105,7 @@ function App() {
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [selectedColor, setSelectedColor] = useState(0)
   const [activeNav, setActiveNav] = useState('home')
-  const [form, setForm] = useState({ groom: '', bride: '', eventDate: '', venue: '', city: '' })
+  const [form, setForm] = useState({ groom: '', bride: '', eventDate: '', venue: '', city: '', photo: '' })
   const [previewBackScreen, setPreviewBackScreen] = useState('colors')
   const [duration, setDuration] = useState(90)
   const [paymentStatus, setPaymentStatus] = useState('unpaid')
@@ -217,7 +230,7 @@ function App() {
     if (drafts.length >= 2) return
     setSelectedTemplate(null)
     setSelectedColor(0)
-    setForm({ groom: '', bride: '', eventDate: '', venue: '', city: '' })
+    setForm({ groom: '', bride: '', eventDate: '', venue: '', city: '', photo: '' })
     setPaymentStatus('unpaid')
     go('templates')
   }
@@ -229,7 +242,7 @@ function App() {
   }
   const openDraft = (draft) => {
     setDrafts((items) => [draft, ...items.filter((item) => item.id !== draft.id)])
-    setForm({ groom: draft.groom || '', bride: draft.bride || '', eventDate: draft.eventDate || '', venue: draft.venue || '', city: draft.city || '' })
+    setForm({ groom: draft.groom || '', bride: draft.bride || '', eventDate: draft.eventDate || '', venue: draft.venue || '', city: draft.city || '', photo: draft.photo || '' })
     setSelectedTemplate(draft.template || null)
     setSelectedColor(draft.color || 0)
     setPreviewBackScreen('drafts')
@@ -269,7 +282,7 @@ function App() {
       {screen === 'drafts' && <DraftsPage drafts={drafts} onBack={() => go('home')} onCreate={createDraft} onOpenDraft={openDraft} />}
       {screen === 'profile' && <ProfilePage username={currentUser} draftCount={drafts.length} onBack={() => go('home')} onLogout={logout} />}
       {screen === 'editor' && <Editor form={form} setForm={setForm} selectedTemplate={selectedTemplate} onBack={() => go('templates')} onNext={() => go('colors')} />}
-      {screen === 'colors' && <ColorSelection template={selectedTemplate} selectedColor={selectedColor} setSelectedColor={setSelectedColor} onBack={() => go('editor')} onSave={saveDraft} />}
+      {screen === 'colors' && <ColorSelection template={selectedTemplate} photo={form.photo} selectedColor={selectedColor} setSelectedColor={setSelectedColor} onBack={() => go('editor')} onSave={saveDraft} />}
       {screen === 'preview' && <Preview draft={activeDraft} onBack={() => go(previewBackScreen)} onPublish={publish} />}
       {screen === 'payment' && <Payment duration={duration} setDuration={setDuration} status={paymentStatus} onBack={() => go('preview')} onSubmit={() => setPaymentStatus('waiting')} />}
       {screen === 'share' && <Share onBack={() => go('home')} />}
@@ -426,7 +439,7 @@ function Home({ drafts, activeDraft, username, onCreate, onOpen }) {
     <section className="home-drafts-panel">
       <span className="home-drafts-shimmer" aria-hidden="true" />
       <div className="section-heading draft-heading home-section-heading"><div><p className="eyebrow">Disimpan untuk nanti</p><h2>Rancanganmu</h2></div><span className="count-pill">{drafts.length}/2</span></div>
-      {activeDraft ? <div className="draft-card"><TemplateArt item={activeDraft.template} colorIndex={activeDraft.color || 0} className="draft-thumb" /><div className="draft-copy"><h3>{activeDraft.groom || 'Rancangan Undangan' } <span>&amp;</span> {activeDraft.bride || 'Pasangan'}</h3><p>{activeDraft.template?.title || 'Template pilihan'} · Tema {activeDraft.color + 1}</p><button className="outline-button" onClick={() => onOpen('preview')}>Lihat pratinjau</button></div></div> : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada rancangan</h3><p>Mulai dari template yang paling mewakili kisah kalian.</p><button className="primary-button" onClick={onCreate}>Buat rancangan pertama <Icon name="arrow" size={17} /></button></div>}
+      {activeDraft ? <div className="draft-card"><TemplateArt item={activeDraft.template} photo={activeDraft.photo} colorIndex={activeDraft.color || 0} className="draft-thumb" /><div className="draft-copy"><h3>{activeDraft.groom || 'Rancangan Undangan' } <span>&amp;</span> {activeDraft.bride || 'Pasangan'}</h3><p>{activeDraft.template?.title || 'Template pilihan'} · Tema {activeDraft.color + 1}</p><button className="outline-button" onClick={() => onOpen('preview')}>Lihat pratinjau</button></div></div> : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada rancangan</h3><p>Mulai dari template yang paling mewakili kisah kalian.</p><button className="primary-button" onClick={onCreate}>Buat rancangan pertama <Icon name="arrow" size={17} /></button></div>}
     </section>
   </section>
 }
@@ -436,7 +449,7 @@ function DraftsPage({ drafts, onBack, onCreate, onOpenDraft }) {
     <Header title="Undangan Saya" onBack={onBack} />
     <div className="screen-intro"><p className="eyebrow">Ruang karyamu</p><h1>Semua rancanganmu.</h1><p className="template-helper">Undangan yang kamu buat tersimpan di sini.</p></div>
     {drafts.length ? <div className="draft-list">{drafts.map((draft) => <button className="draft-list-item" type="button" key={draft.id} onClick={() => onOpenDraft(draft)}>
-      <TemplateArt item={draft.template} colorIndex={draft.color || 0} className="draft-list-art" />
+      <TemplateArt item={draft.template} photo={draft.photo} colorIndex={draft.color || 0} className="draft-list-art" />
       <span className="draft-list-copy"><strong>{draft.groom || 'Nama mempelai'} <i>&amp;</i> {draft.bride || 'Nama mempelai'}</strong><small>{draft.template?.title || 'Template pilihan'} · {draft.status}</small></span>
       <Icon name="chevron" size={18} />
     </button>)}</div> : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada undangan</h3><p>Rancangan yang kamu simpan akan muncul di sini.</p><button className="primary-button" onClick={onCreate}>Mulai buat undangan <Icon name="arrow" size={17} /></button></div>}
@@ -460,7 +473,7 @@ function ProfilePage({ username, draftCount, onBack, onLogout }) {
   </section>
 }
 
-function TemplateArt({ item, className = '', children, colorIndex = 0 }) {
+function TemplateArt({ item, className = '', children, colorIndex = 0, photo = '' }) {
   const art = item?.art || 'simple'
   const colors = item?.colors || ['#f3eddf', '#263c30', '#b8935b']
   const primaryIndex = colorIndex % colors.length
@@ -469,10 +482,15 @@ function TemplateArt({ item, className = '', children, colorIndex = 0 }) {
     '--art-secondary': colors[(primaryIndex + 1) % colors.length],
     '--art-accent': colors[(primaryIndex + 2) % colors.length],
   }
+  const isPhotoTemplate = Boolean(item?.photoLayout)
+  const content = children || <div className="art-copy"><span>UNDANGAN PERNIKAHAN</span><strong>Nama <i>&amp;</i> Nama</strong><small>12 · 12 · 26</small></div>
   return <div className={`template-art art-${art} ${className}`} style={style}>
     <span className="art-type">{item?.type || 'Simple'}</span>
-    {children || <div className="art-copy"><span>UNDANGAN PERNIKAHAN</span><strong>Nama <i>&amp;</i> Nama</strong><small>12 · 12 · 26</small></div>}
-    <span className="art-privacy">Tanpa foto</span>
+    {isPhotoTemplate && <div className="photo-frame" aria-hidden="true">
+      {photo ? <img className="photo-image" src={photo} alt="" /> : <span className="photo-placeholder" />}
+    </div>}
+    {isPhotoTemplate ? <div className="photo-copy">{content}</div> : content}
+    <span className="art-privacy">{isPhotoTemplate ? photo ? 'Foto terpasang' : 'Unggah foto' : 'Tanpa foto'}</span>
   </div>
 }
 
@@ -480,22 +498,58 @@ function TemplateGallery({ onBack, selected, setSelected, onUse }) {
   const [filter, setFilter] = useState('Semua')
   const filters = ['Semua', ...new Set(templates.map((item) => item.type))]
   const shown = filter === 'Semua' ? templates : templates.filter((item) => item.type === filter)
-  return <section className="plain-screen"><Header title="Pilih Template" onBack={onBack} action={<button type="button" className="icon-button" aria-label="Cari"><Icon name="search" /></button>} /><div className="screen-intro"><p className="eyebrow">Langkah 1 dari 6</p><h1>Temukan yang terasa seperti kamu.</h1><p className="template-helper">Pilih konsep desain yang kamu suka. Semua pilihan ini bisa digunakan tanpa foto.</p></div><button type="button" className={selected ? 'selection-hint selected' : 'selection-hint'} onClick={() => { if (selected) onUse() }} aria-label={selected ? 'Lanjutkan ke pengisian data' : 'Petunjuk memilih template'}><Icon name={selected ? 'check' : 'grid'} size={17} /><span>{selected ? `Template “${selected.title}” dipilih. Ketuk di sini untuk lanjut mengisi data.` : 'Pilih konsep simple, full color, natural, tradisional, dan lainnya.'}</span></button><div className="filter-row">{filters.map((item) => <button type="button" key={item} className={filter === item ? 'filter active' : 'filter'} onClick={() => setFilter(item)}>{item}</button>)}</div><div className="template-grid">{shown.map((item) => <TemplateCard key={item.id} item={item} selected={selected?.id === item.id} onClick={() => setSelected(item)} />)}</div>{selected && <div className="sticky-action"><div><span className="eyebrow">Template dipilih</span><strong>{selected.title}</strong><small>Tanpa foto · {selected.colors.length} pilihan warna</small></div><button type="button" className="primary-button" onClick={onUse}>Lanjutkan ke data <Icon name="arrow" size={17} /></button></div>}</section>
+  return <section className="plain-screen"><Header title="Pilih Template" onBack={onBack} action={<button type="button" className="icon-button" aria-label="Cari"><Icon name="search" /></button>} /><div className="screen-intro"><p className="eyebrow">Langkah 1 dari 6</p><h1>Temukan yang terasa seperti kamu.</h1><p className="template-helper">Pilih konsep desain yang kamu suka. Template foto bisa diunggah saat mengisi data undangan.</p></div><button type="button" className={selected ? 'selection-hint selected' : 'selection-hint'} onClick={() => { if (selected) onUse() }} aria-label={selected ? 'Lanjutkan ke pengisian data' : 'Petunjuk memilih template'}><Icon name={selected ? 'check' : 'grid'} size={17} /><span>{selected ? `Template “${selected.title}” dipilih. Ketuk di sini untuk lanjut mengisi data.` : 'Pilih konsep simple, full color, natural, tradisional, floral, atau dengan foto.'}</span></button><div className="filter-row">{filters.map((item) => <button type="button" key={item} className={filter === item ? 'filter active' : 'filter'} onClick={() => setFilter(item)}>{item}</button>)}</div><div className="template-grid">{shown.map((item) => <TemplateCard key={item.id} item={item} selected={selected?.id === item.id} onClick={() => setSelected(item)} />)}</div>{selected && <div className="sticky-action"><div><span className="eyebrow">Template dipilih</span><strong>{selected.title}</strong><small>{selected.photoLayout ? `${photoLayoutLabels[selected.photoLayout]} · ` : 'Tanpa foto · '}{selected.colors.length} pilihan warna</small></div><button type="button" className="primary-button" onClick={onUse}>Lanjutkan ke data <Icon name="arrow" size={17} /></button></div>}</section>
 }
 
-function TemplateCard({ item, selected, compact, onClick }) { return <button type="button" className={`template-card ${compact ? 'compact' : ''} ${selected ? 'selected' : ''}`} onClick={onClick} aria-pressed={selected}><TemplateArt item={item} className="template-image" />{selected && <span className="selected-badge"><Icon name="check" size={14} /></span>}<div className="template-meta"><div><h3>{item.title}</h3><p>{selected ? 'Dipilih · lanjutkan di bawah' : 'Tanpa foto · ' + item.colors.length + ' warna'}</p></div><span className="round-arrow"><Icon name="chevron" size={17} /></span></div></button> }
+function TemplateCard({ item, selected, compact, onClick }) { return <button type="button" className={`template-card ${compact ? 'compact' : ''} ${selected ? 'selected' : ''}`} onClick={onClick} aria-pressed={selected}><TemplateArt item={item} className="template-image" />{selected && <span className="selected-badge"><Icon name="check" size={14} /></span>}<div className="template-meta"><div><h3>{item.title}</h3><p>{selected ? 'Dipilih · lanjutkan di bawah' : `${item.photoLayout ? photoLayoutLabels[item.photoLayout] : 'Tanpa foto'} · ${item.colors.length} warna`}</p></div><span className="round-arrow"><Icon name="chevron" size={17} /></span></div></button> }
 
 function Editor({ form, setForm, selectedTemplate, onBack, onNext }) {
   const update = (key, value) => setForm({ ...form, [key]: value })
+  const [photoError, setPhotoError] = useState('')
+  const handlePhotoChange = (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    event.target.value = ''
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setPhotoError('Gunakan foto dengan format JPG, PNG, atau WebP.')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('Ukuran foto maksimal 5 MB.')
+      return
+    }
+    setPhotoError('')
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') {
+        setPhotoError('Foto tidak dapat dibaca. Coba pilih gambar lain.')
+        return
+      }
+      update('photo', reader.result)
+    }
+    reader.onerror = () => setPhotoError('Foto tidak dapat dibaca. Coba pilih gambar lain.')
+    reader.readAsDataURL(file)
+  }
   return <section className="plain-screen editor-screen">
     <Header title="Isi Data Undangan" onBack={onBack} action={<span className="step-count">2 dari 6</span>} />
-    <TemplateArt item={selectedTemplate} className="editor-preview">
-      <div className="editor-art-copy">
-        <span className="eyebrow">PRATINJAU TEMA · TANPA FOTO</span>
+    <TemplateArt item={selectedTemplate} photo={form.photo} className="editor-preview">
+      <div className={`editor-art-copy ${selectedTemplate?.photoLayout ? 'photo-preview-copy' : ''}`}>
+        <span className="eyebrow">PRATINJAU TEMA{selectedTemplate?.photoLayout ? ' · FOTO' : ' · TANPA FOTO'}</span>
         <h2>{form.groom || 'Nama Pria'} <small>&amp;</small> {form.bride || 'Nama Wanita'}</h2>
         <p>{selectedTemplate?.title}</p>
       </div>
     </TemplateArt>
+    {selectedTemplate?.photoLayout && <div className="form-section photo-upload-section">
+      <div className="section-heading"><div><p className="eyebrow">Personalisasi foto</p><h2>Tambahkan foto kalian</h2></div><Icon name="camera" size={21} /></div>
+      <p className="template-helper">Desain ini menggunakan {photoLayoutLabels[selectedTemplate.photoLayout].toLowerCase()}. Gunakan foto JPG, PNG, atau WebP hingga 5 MB. Di prototipe ini, foto tersimpan sementara selama sesi aplikasi.</p>
+      <label className="photo-upload">
+        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoChange} />
+        <span className="photo-upload-icon"><Icon name="camera" size={19} /></span>
+        <span><strong>{form.photo ? 'Ganti foto' : 'Pilih foto dari perangkat'}</strong><small>{form.photo ? 'Foto akan mengikuti tata letak template' : 'Foto bersifat opsional'}</small></span>
+      </label>
+      {form.photo && <button type="button" className="text-button photo-remove" onClick={() => { update('photo', ''); setPhotoError('') }}>Hapus foto</button>}
+      {photoError && <p className="field-error" role="alert">{photoError}</p>}
+    </div>}
     <div className="form-section">
       <div className="section-heading"><div><p className="eyebrow">Identitas pasangan</p><h2>Mulai dari nama kalian</h2></div><Icon name="sparkle" size={21} /></div>
       <label className="field-label" htmlFor="groom">Nama mempelai pria</label><input id="groom" className="text-input" value={form.groom} onChange={(e) => update('groom', e.target.value)} placeholder="Contoh: Bagas Pratama" />
@@ -508,12 +562,12 @@ function Editor({ form, setForm, selectedTemplate, onBack, onNext }) {
   </section>
 }
 
-function ColorSelection({ template, selectedColor, setSelectedColor, onBack, onSave }) {
+function ColorSelection({ template, photo, selectedColor, setSelectedColor, onBack, onSave }) {
   return <section className="plain-screen">
     <Header title="Atur Nuansa Warna" onBack={onBack} action={<span className="step-count">3 dari 6</span>} />
     <div className="screen-intro"><p className="eyebrow">Satu sentuhan personal</p><h1>Pilih warna yang paling mewakili.</h1><p className="template-helper">{template?.title || 'Template pilihan'} · kamu bisa mengganti warna ini kapan saja sebelum menyimpan.</p></div>
-    <TemplateArt item={template} colorIndex={selectedColor} className="color-preview">
-      <div className="editor-art-copy"><span className="eyebrow">PRATINJAU TEMA · TANPA FOTO</span><strong>Nama <i>&amp;</i> Nama</strong><small>12 · 12 · 26</small></div>
+    <TemplateArt item={template} photo={photo} colorIndex={selectedColor} className="color-preview">
+      <div className={`editor-art-copy ${template?.photoLayout ? 'photo-preview-copy' : ''}`}><span className="eyebrow">PRATINJAU TEMA{template?.photoLayout ? ' · FOTO' : ' · TANPA FOTO'}</span><strong>Nama <i>&amp;</i> Nama</strong><small>12 · 12 · 26</small></div>
     </TemplateArt>
     <div className="form-section color-selection-section">
       <div className="section-heading"><div><p className="eyebrow">Pilihan warna</p><h2>Pilih nuansa undanganmu</h2></div></div>
@@ -530,9 +584,9 @@ function Preview({ draft, onBack, onPublish }) {
   return <section className="plain-screen">
     <Header title="Pratinjau Undangan" onBack={onBack} action={<span className="step-count">4 dari 6</span>} />
     <div className="preview-note"><Icon name="check" size={17} /><span>Periksa kembali nama, tanggal, lokasi, dan warna sebelum mengaktifkan undangan.</span></div>
-    <TemplateArt item={draft?.template} colorIndex={draft?.color || 0} className="invitation-preview">
+    <TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="invitation-preview">
       <div className="preview-content">
-        <span className="eyebrow">UNDANGAN PERNIKAHAN · TANPA FOTO</span>
+        <span className="eyebrow">UNDANGAN PERNIKAHAN{draft?.photo ? ' · FOTO' : ''}</span>
         <h1>{couple}</h1>
         <p>{draft?.eventDate ? new Date(draft.eventDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Sabtu, 12 Desember 2026'}</p>
         <div className="preview-divider" />
@@ -551,7 +605,7 @@ function LivePreview({ couple, draft, onClose }) {
   const [rsvp, setRsvp] = useState(false)
   return <div className="live-overlay">
     <div className="live-topbar"><div><span className="eyebrow light-text">Mode tamu</span><strong>Live Preview</strong></div><button className="icon-button light" onClick={onClose} aria-label="Tutup live preview"><Icon name="close" /></button></div>
-    {!opened ? <TemplateArt item={draft?.template} colorIndex={draft?.color || 0} className="live-cover"><div className="live-cover-content"><span className="eyebrow">UNDANGAN PERNIKAHAN · TANPA FOTO</span><h1>{couple}</h1><p>Dengan penuh kebahagiaan, kami mengundang Anda untuk hadir di hari istimewa kami.</p><button className="light-button" onClick={() => setOpened(true)}>Buka Undangan <Icon name="arrow" size={17} /></button></div></TemplateArt> : <div className="live-scroll"><TemplateArt item={draft?.template} colorIndex={draft?.color || 0} className="live-photo" /><div className="live-body"><span className="eyebrow">The wedding of</span><h1>{couple}</h1><p className="live-date">{draft?.eventDate || '12 Desember 2026'} · {draft?.venue || 'Gedung Pernikahan'}</p><div className="countdown-row"><div><strong>12</strong><span>Hari</span></div><div><strong>08</strong><span>Jam</span></div><div><strong>34</strong><span>Menit</span></div><div><strong>21</strong><span>Detik</span></div></div><div className="live-info"><h2>Menuju hari bahagia</h2><p>Mohon doa dan restu untuk perjalanan baru kami. Kehadiran Anda adalah hadiah yang berarti.</p><button className="outline-button full">Lihat lokasi <Icon name="arrow" size={16} /></button></div><div className="live-info"><h2>Konfirmasi kehadiran</h2>{rsvp ? <p className="rsvp-success"><Icon name="check" size={16} /> Terima kasih, konfirmasi tersimpan.</p> : <button className="primary-button full" onClick={() => setRsvp(true)}>Isi RSVP <Icon name="arrow" size={16} /></button>}</div></div></div>}
+    {!opened ? <TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="live-cover"><div className="live-cover-content"><span className="eyebrow">UNDANGAN PERNIKAHAN{draft?.photo ? ' · FOTO' : ''}</span><h1>{couple}</h1><p>Dengan penuh kebahagiaan, kami mengundang Anda untuk hadir di hari istimewa kami.</p><button className="light-button" onClick={() => setOpened(true)}>Buka Undangan <Icon name="arrow" size={17} /></button></div></TemplateArt> : <div className="live-scroll"><TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} className="live-photo" /><div className="live-body"><span className="eyebrow">The wedding of</span><h1>{couple}</h1><p className="live-date">{draft?.eventDate || '12 Desember 2026'} · {draft?.venue || 'Gedung Pernikahan'}</p><div className="countdown-row"><div><strong>12</strong><span>Hari</span></div><div><strong>08</strong><span>Jam</span></div><div><strong>34</strong><span>Menit</span></div><div><strong>21</strong><span>Detik</span></div></div><div className="live-info"><h2>Menuju hari bahagia</h2><p>Mohon doa dan restu untuk perjalanan baru kami. Kehadiran Anda adalah hadiah yang berarti.</p><button className="outline-button full">Lihat lokasi <Icon name="arrow" size={16} /></button></div><div className="live-info"><h2>Konfirmasi kehadiran</h2>{rsvp ? <p className="rsvp-success"><Icon name="check" size={16} /> Terima kasih, konfirmasi tersimpan.</p> : <button className="primary-button full" onClick={() => setRsvp(true)}>Isi RSVP <Icon name="arrow" size={17} /></button>}</div></div></div>}
   </div>
 }
 
