@@ -9,13 +9,16 @@ npm install
 npm run dev
 ```
 
-Antarmuka menggunakan data lokal untuk rancangan undangan. Pilihan desain menampilkan mockup sampul dan halaman undangan mobile; Live Preview berisi sampul, nama pasangan, orang tua (opsional), jadwal Akad, serta jadwal dan lokasi Resepsi (opsional). Pengguna dapat memilih warna tema serta warna font dari swatch atau pemilih warna khusus. Tema Islami menyediakan lima desain tanpa upload foto dan pilihan animasi ornamen (cahaya, gerak daun, kelopak, atau tanpa animasi); animasi dihentikan jika perangkat meminta pengurangan gerakan. Rancangan dan foto tetap tersimpan sementara di memori aplikasi. Akun menggunakan Supabase Auth:
-
-- alur pembuatan: isi lengkap data pasangan dan acara, pilih template, atur foto/warna, lalu pratinjau
+- Editor undangan terpadu menerima nama panggilan dan lengkap, tanggal, jadwal Akad/Resepsi, lokasi dan peta, keluarga, kata pengantar, doa, serta pesan untuk tamu.
+- Pengaturan tampilan berada di editor yang sama: foto sampul opsional, tiga tata letak, palet warna UndanganKu, gaya huruf dan tombol, serta urutan navigasi undangan.
+- Musik dapat dimatikan atau menggunakan file audio sendiri hingga 10 MB. Rancangan, foto, dan audio hanya tersimpan sementara di memori aplikasi.
+- Live Preview menampilkan sampul dan bagian Acara, Keluarga, Peta, dan Doa mengikuti data serta urutan menu yang diatur.
+- Alur pembuatan: buka **Buat rancangan pertama** dari Beranda, isi dan sesuaikan undangan pada satu editor, kemudian pratinjau dan lanjut ke aktivasi.
+- Akun menggunakan Supabase Auth:
 - onboarding
 - daftar dan login dengan Nama ID dan kata sandi
 - beranda
-- galeri template
+- editor undangan terpadu
 - pembuatan rancangan
 - pratinjau final
 - pemilihan masa aktif
@@ -24,7 +27,7 @@ Antarmuka menggunakan data lokal untuk rancangan undangan. Pilihan desain menamp
 
 Bagian lokasi Akad menyediakan pencarian otomatis alamat melalui OpenStreetMap Nominatim, pemilih peta interaktif, opsi lokasi perangkat, dan kolom link Google Maps. Jika pencarian tidak menemukan alamat, pengguna dapat memakai lokasi perangkat, menggeser pin, atau mengetuk titik pada peta. Pin yang dipilih menghasilkan link Google Maps untuk pratinjau undangan. Alamat Resepsi opsional menghasilkan link pencarian Google Maps pada Live Preview. Pencarian alamat dan peta memerlukan koneksi internet; hasilnya menggunakan Nominatim, bukan Google Geocoding API.
 
-Tema **Dengan Foto** menyediakan lima tata letak dengan warna dan posisi foto berbeda. Foto JPG, PNG, atau WebP hingga 5 MB dapat dipilih pada editor; untuk saat ini foto dan rancangan hanya tersimpan sementara di memori aplikasi, sehingga tidak bertahan setelah halaman dimuat ulang dan belum ikut ke link undangan publik. Penyimpanan foto permanen memerlukan integrasi storage.
+Foto JPG, PNG, atau WebP hingga 5 MB dapat dipilih pada editor. Saat ini foto, audio, dan rancangan tidak bertahan setelah halaman dimuat ulang dan belum ikut ke link undangan publik. Penyimpanan permanen memerlukan integrasi storage.
 
 Password dan sesi ditangani Supabase Auth, bukan disimpan di aplikasi. Nama ID dipetakan ke alamat internal pada domain `.invalid` (tidak dapat menerima email); indeks unik di database mencegah duplikasi. Karena tidak ada email/nomor yang dapat diverifikasi, pemulihan password mandiri tidak tersedia. Siapkan prosedur bantuan admin sebelum membuka pendaftaran publik.
 

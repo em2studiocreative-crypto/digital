@@ -6,7 +6,7 @@ import { supabase, usernameAuthEmail } from './lib/supabaseClient.js'
 
 const VenueMapPicker = lazy(() => import('./VenueMapPicker.jsx'))
 const WeddingInvitation = lazy(() => import('./WeddingInvitation.jsx'))
-const TemplateGallery = lazy(() => import('./TemplateGallery.jsx'))
+const InvitationEditor = lazy(() => import('./InvitationEditor.jsx'))
 
 if ('serviceWorker' in navigator && import.meta.env.DEV) {
   navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister()))
@@ -56,76 +56,16 @@ const Icon = ({ name, size = 20, stroke = 'currentColor', className = '' }) => {
   return <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
 
-const templates = [
-  { id: 1, title: 'Sela', type: 'Simple', art: 'simple', colors: ['#f3eddf', '#263c30', '#b8935b'] },
-  { id: 6, title: 'Akad Pagi', type: 'Simple', art: 'simple', colors: ['#f5f0e5', '#53675b', '#c4a878'] },
-  { id: 7, title: 'Putih Janji', type: 'Simple', art: 'simple', colors: ['#f7f5f0', '#52616b', '#b8a78b'] },
-  { id: 8, title: 'Ruang Rindu', type: 'Simple', art: 'simple', colors: ['#eadfd2', '#5a463e', '#b77b64'] },
-  { id: 9, title: 'Senandika', type: 'Simple', art: 'simple', colors: ['#e9e5d8', '#38483e', '#9c9875'] },
-  { id: 2, title: 'Rona Pesta', type: 'Full Color', art: 'colorful', colors: ['#f2b84b', '#e87563', '#64549b'] },
-  { id: 10, title: 'Pesta Ceria', type: 'Full Color', art: 'colorful', colors: ['#f2a65a', '#df5474', '#694f9b'] },
-  { id: 11, title: 'Senja Meriah', type: 'Full Color', art: 'colorful', colors: ['#e7a64e', '#bf5360', '#3f7180'] },
-  { id: 12, title: 'Rona Bahagia', type: 'Full Color', art: 'colorful', colors: ['#f1bd62', '#ed7c54', '#536ca1'] },
-  { id: 13, title: 'Kisah Warna', type: 'Full Color', art: 'colorful', colors: ['#d98d75', '#76569a', '#e3b74e'] },
-  { id: 3, title: 'Rimba Senja', type: 'Natural', art: 'natural', colors: ['#c7d0b4', '#d9c096', '#6e7b68'] },
-  { id: 14, title: 'Pagi di Ubud', type: 'Natural', art: 'natural', colors: ['#d6ddc8', '#a8ad82', '#687b68'] },
-  { id: 15, title: 'Embun Lembut', type: 'Natural', art: 'natural', colors: ['#d7e2db', '#8fa99b', '#65766a'] },
-  { id: 16, title: 'Bumi Teduh', type: 'Natural', art: 'natural', colors: ['#d7c8aa', '#a88962', '#65705b'] },
-  { id: 17, title: 'Lembah Asri', type: 'Natural', art: 'natural', colors: ['#c4d2c2', '#b2a47e', '#58705c'] },
-  { id: 4, title: 'Purnama Jawa', type: 'Tradisional', art: 'traditional', colors: ['#a88a62', '#44372c', '#ede0c2'] },
-  { id: 18, title: 'Batik Laras', type: 'Tradisional', art: 'traditional', colors: ['#b58961', '#49372f', '#ead8b8'] },
-  { id: 19, title: 'Sekar Jagad', type: 'Tradisional', art: 'traditional', colors: ['#a86d55', '#432f2b', '#e6c99c'] },
-  { id: 20, title: 'Adat Pusaka', type: 'Tradisional', art: 'traditional', colors: ['#c19a67', '#514033', '#f0dfbd'] },
-  { id: 21, title: 'Citra Mataram', type: 'Tradisional', art: 'traditional', colors: ['#947456', '#382e29', '#dbc69f'] },
-  { id: 5, title: 'Taman Hati', type: 'Floral', art: 'floral', colors: ['#e7c1bd', '#f4ede5', '#8a6c78'] },
-  { id: 22, title: 'Mawar Pagi', type: 'Floral', art: 'floral', colors: ['#edc9c1', '#f5eee5', '#9c6970'] },
-  { id: 23, title: 'Bunga Senja', type: 'Floral', art: 'floral', colors: ['#d9b3b0', '#f4e8d9', '#876578'] },
-  { id: 24, title: 'Kebun Cinta', type: 'Floral', art: 'floral', colors: ['#e8cbb1', '#f8f0df', '#8a8b68'] },
-  { id: 25, title: 'Kelopak Kasih', type: 'Floral', art: 'floral', colors: ['#dfbfc9', '#f7ede8', '#986f83'] },
-  { id: 26, title: 'Sampul Senja', type: 'Dengan Foto', art: 'photo', photoLayout: 'cover', colors: ['#8c5a45', '#f4e3d3', '#e6bb75'] },
-  { id: 27, title: 'Potret Pagi', type: 'Dengan Foto', art: 'photo', photoLayout: 'top', colors: ['#e7e1d3', '#4b6358', '#c4a878'] },
-  { id: 28, title: 'Bingkai Kenangan', type: 'Dengan Foto', art: 'photo', photoLayout: 'frame', colors: ['#e8d9d1', '#744f56', '#c59078'] },
-  { id: 29, title: 'Ruang Cerita', type: 'Dengan Foto', art: 'photo', photoLayout: 'side', colors: ['#d7e0d4', '#40594d', '#a8855d'] },
-  { id: 30, title: 'Arsip Cinta', type: 'Dengan Foto', art: 'photo', photoLayout: 'wide', colors: ['#e8d7b8', '#4c4a40', '#ba795e'] },
-  { id: 31, title: 'Cahaya Fajar', type: 'Islami', art: 'islamic', colors: ['#f4eddd', '#31533f', '#bd9860'] },
-  { id: 32, title: 'Taman Sakinah', type: 'Islami', art: 'islamic', colors: ['#e8eee1', '#45644e', '#c4a874'] },
-  { id: 33, title: 'Nusa Barakah', type: 'Islami', art: 'islamic', colors: ['#f1e4d2', '#704f3c', '#b48b55'] },
-  { id: 34, title: 'Serambi Madani', type: 'Islami', art: 'islamic', colors: ['#e6e9df', '#3c4d43', '#ad9366'] },
-  { id: 35, title: 'Pelita Kasih', type: 'Islami', art: 'islamic', colors: ['#efe4e0', '#684d53', '#bd997d'] },
-]
-
-const photoLayoutLabels = {
-  cover: 'Foto latar',
-  top: 'Foto atas',
-  frame: 'Foto bingkai',
-  side: 'Foto samping',
-  wide: 'Foto lebar',
+const emptyForm = {
+  groom: '', bride: '', groomNickname: '', brideNickname: '',
+  groomParents: '', brideParents: '', eventDate: '', akadTime: '',
+  venue: '', city: '', address: '', mapLink: '', latitude: null, longitude: null,
+  receptionDate: '', receptionTime: '', receptionVenue: '', receptionAddress: '',
+  poetic: '', prayer: '', guestName: '', guestMessage: '', photo: '',
+  palette: 'forest', fontColor: '#263c30', fontStyle: 'anggun', buttonStyle: 'capsule',
+  layout: 'gate', menuOrder: ['acara', 'keluarga', 'peta', 'doa'],
+  music: 'none', musicName: '', musicData: '',
 }
-
-const themeLabels = {
-  Simple: 'Klasik Editorial',
-  'Full Color': 'Warna Cerita',
-  Natural: 'Botanical',
-  Tradisional: 'Nusantara',
-  Floral: 'Floral',
-  'Dengan Foto': 'Foto Pasangan',
-  Islami: 'Islami',
-}
-
-const animationChoices = [
-  { id: 'none', label: 'Tanpa animasi', detail: 'Tampilan tenang' },
-  { id: 'glow', label: 'Cahaya lembut', detail: 'Ornamen berpendar' },
-  { id: 'drift', label: 'Daun berayun', detail: 'Hiasan bergerak pelan' },
-  { id: 'petals', label: 'Kelopak melayang', detail: 'Kelopak turun perlahan' },
-]
-
-const fontColorChoices = [
-  { label: 'Hijau hutan', value: '#263c30' },
-  { label: 'Cokelat klasik', value: '#765b4a' },
-  { label: 'Abu arang', value: '#414442' },
-  { label: 'Merah marun', value: '#743f49' },
-  { label: 'Biru malam', value: '#3e5368' },
-]
 
 function App() {
   const [screen, setScreen] = useState('welcome')
@@ -139,28 +79,9 @@ function App() {
   const [authBusy, setAuthBusy] = useState(false)
   const [logoutMessage, setLogoutMessage] = useState('')
   const [drafts, setDrafts] = useState([])
-  const [selectedTemplate, setSelectedTemplate] = useState(null)
-  const [selectedColor, setSelectedColor] = useState(0)
-  const [selectedFontColor, setSelectedFontColor] = useState('#263c30')
-  const [selectedAnimation, setSelectedAnimation] = useState('none')
-  const [activeNav, setActiveNav] = useState('home')
-  const [form, setForm] = useState({
-    groom: '',
-    bride: '',
-    groomParents: '',
-    brideParents: '',
-    eventDate: '',
-    akadTime: '',
-    venue: '',
-    city: '',
-    address: '',
-    receptionDate: '',
-    receptionTime: '',
-    receptionVenue: '',
-    receptionAddress: '',
-    photo: '',
-  })
-  const [previewBackScreen, setPreviewBackScreen] = useState('colors')
+  const [editingDraftId, setEditingDraftId] = useState(null)
+  const [draftLimitMessage, setDraftLimitMessage] = useState('')
+  const [form, setForm] = useState({ ...emptyForm })
   const [duration, setDuration] = useState(90)
   const [paymentStatus, setPaymentStatus] = useState('unpaid')
 
@@ -283,66 +204,33 @@ function App() {
     }
   }
   const createDraft = () => {
-    if (drafts.length >= 2) return
-    setSelectedTemplate(null)
-    setSelectedColor(0)
-    setSelectedFontColor('#263c30')
-    setSelectedAnimation('none')
-    setForm({
-      groom: '',
-      bride: '',
-      groomParents: '',
-      brideParents: '',
-      eventDate: '',
-      akadTime: '',
-      venue: '',
-      city: '',
-      address: '',
-      mapLink: '',
-      latitude: null,
-      longitude: null,
-      receptionDate: '',
-      receptionTime: '',
-      receptionVenue: '',
-      receptionAddress: '',
-      photo: '',
-    })
+    if (drafts.length >= 2) {
+      setDraftLimitMessage('Kamu sudah memiliki 2 rancangan. Buka salah satunya untuk mengubah data.')
+      return
+    }
+    setDraftLimitMessage('')
+    setEditingDraftId(null)
+    setForm({ ...emptyForm })
     setPaymentStatus('unpaid')
     go('editor')
   }
   const saveDraft = () => {
-    const next = { ...form, template: selectedTemplate, color: selectedColor, fontColor: selectedFontColor, animation: selectedAnimation, id: Date.now(), status: 'Draft' }
-    setDrafts((items) => [next, ...items].slice(0, 2))
-    setPreviewBackScreen('colors')
+    if (!editingDraftId && drafts.length >= 2) {
+      setDraftLimitMessage('Batas 2 rancangan tercapai. Kembali ke beranda dan buka rancangan untuk mengedit.')
+      return false
+    }
+    const next = { ...form, id: editingDraftId || Date.now(), status: 'Draft' }
+    setDrafts((items) => [next, ...items.filter((item) => item.id !== next.id)].slice(0, 2))
+    setDraftLimitMessage('')
     go('preview')
+    return true
   }
   const openDraft = (draft) => {
     setDrafts((items) => [draft, ...items.filter((item) => item.id !== draft.id)])
-    setForm({
-      groom: draft.groom || '',
-      bride: draft.bride || '',
-      groomParents: draft.groomParents || '',
-      brideParents: draft.brideParents || '',
-      eventDate: draft.eventDate || '',
-      akadTime: draft.akadTime || '',
-      venue: draft.venue || '',
-      city: draft.city || '',
-      address: draft.address || '',
-      mapLink: draft.mapLink || '',
-      latitude: draft.latitude ?? null,
-      longitude: draft.longitude ?? null,
-      receptionDate: draft.receptionDate || '',
-      receptionTime: draft.receptionTime || '',
-      receptionVenue: draft.receptionVenue || '',
-      receptionAddress: draft.receptionAddress || '',
-      photo: draft.photo || '',
-    })
-    setSelectedTemplate(draft.template || null)
-    setSelectedColor(draft.color || 0)
-    setSelectedFontColor(draft.fontColor || draft.template?.colors?.[1] || '#263c30')
-    setSelectedAnimation(draft.animation || (draft.template?.type === 'Islami' ? 'glow' : 'none'))
-    setPreviewBackScreen('drafts')
-    go('preview')
+    setForm({ ...emptyForm, ...draft, palette: draft.palette || 'forest', layout: draft.layout || 'gate' })
+    setEditingDraftId(draft.id)
+    setDraftLimitMessage('')
+    go('editor')
   }
   const publish = () => {
     go('payment')
@@ -361,7 +249,6 @@ function App() {
       setPassword('')
       setAuthMode('login')
       setAuthMessage('')
-      setActiveNav('home')
       go('login')
     } catch (error) {
       console.error('Gagal mengakhiri sesi:', error)
@@ -373,18 +260,16 @@ function App() {
     <main className={`app-shell ${screen === 'welcome' ? 'welcome-app-shell' : ''} ${screen === 'login' ? 'auth-app-shell' : ''} ${screen === 'home' ? 'home-app-shell' : ''}`}>
       {screen === 'welcome' && <Welcome onboarding={onboarding} setOnboarding={setOnboarding} onStart={startApp} />}
       {screen === 'login' && <AuthScreen mode={authMode} setMode={(mode) => { setAuthMode(mode); setAuthMessage(''); setPassword('') }} username={username} setUsername={setUsername} password={password} setPassword={setPassword} message={authMessage} busy={authBusy} onSubmit={submitAuth} />}
-      {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpen={go} />}
-      {screen === 'templates' && <Suspense fallback={<div className="wedding-loading" role="status">Memuat pilihan template…</div>}><TemplateGallery onBack={() => go('editor')} selected={selectedTemplate} setSelected={(item) => { setSelectedTemplate(item); setSelectedAnimation(item.type === 'Islami' ? 'glow' : 'none') }} onUse={() => go('colors')} templates={templates} photoLayoutLabels={photoLayoutLabels} themeLabels={themeLabels} Icon={Icon} Header={Header} /></Suspense>}
+      {screen === 'home' && <Home drafts={drafts} activeDraft={activeDraft} username={currentUser} onCreate={createDraft} onOpen={go} draftLimitMessage={draftLimitMessage} />}
       {screen === 'drafts' && <DraftsPage drafts={drafts} onBack={() => go('home')} onCreate={createDraft} onOpenDraft={openDraft} />}
       {screen === 'profile' && <ProfilePage username={currentUser} draftCount={drafts.length} onBack={() => go('home')} onLogout={logout} />}
-      {screen === 'editor' && <Editor form={form} setForm={setForm} onBack={() => go('home')} onNext={() => go('templates')} />}
-      {screen === 'colors' && <ColorSelection template={selectedTemplate} form={form} photo={form.photo} setPhoto={(photo) => setForm((current) => ({ ...current, photo }))} selectedColor={selectedColor} setSelectedColor={setSelectedColor} selectedFontColor={selectedFontColor} setSelectedFontColor={setSelectedFontColor} selectedAnimation={selectedAnimation} setSelectedAnimation={setSelectedAnimation} onBack={() => go('templates')} onSave={saveDraft} />}
-      {screen === 'preview' && <Preview draft={activeDraft} onBack={() => go(previewBackScreen)} onPublish={publish} />}
+      {screen === 'editor' && <Suspense fallback={<div className="wedding-loading" role="status">Memuat editor undangan…</div>}><InvitationEditor form={form} setForm={setForm} onBack={() => go('home')} onSave={saveDraft} Icon={Icon} VenueMapPicker={VenueMapPicker} /></Suspense>}
+      {screen === 'preview' && <Preview draft={activeDraft} onBack={() => go('editor')} onEdit={() => { setForm({ ...emptyForm, ...(activeDraft || {}) }); setEditingDraftId(activeDraft?.id ?? null); go('editor') }} onPublish={publish} />}
       {screen === 'payment' && <Payment duration={duration} setDuration={setDuration} status={paymentStatus} onBack={() => go('preview')} onSubmit={() => setPaymentStatus('waiting')} />}
       {screen === 'share' && <Share onBack={() => go('home')} />}
-      {['home', 'templates', 'drafts', 'profile'].includes(screen) && <>
+      {['home', 'drafts', 'profile'].includes(screen) && <>
         {logoutMessage && <p className="nav-message" role="alert">{logoutMessage}</p>}
-        <BottomNav active={screen} setActive={(item) => { setLogoutMessage(''); setActiveNav(item); if (item === 'templates' && screen !== 'templates') createDraft(); else go(item) }} onLogout={logout} />
+        <BottomNav active={screen} setActive={(item) => { setLogoutMessage(''); go(item) }} onLogout={logout} />
       </>}
     </main>
   )
@@ -408,7 +293,7 @@ function Welcome({ onboarding, setOnboarding, onStart }) {
   }), [])
   const slides = [
     { eyebrow: 'Pernikahan yang berkesan', title: 'Rencanakan Hari Bahagia dengan Mudah', body: 'Buat undangan digital yang terasa personal, elegan, dan siap dibagikan.', button: 'Mulai Sekarang' },
-    { eyebrow: 'Pilih yang paling kamu suka', title: 'Template yang Mewakili Kisahmu', body: 'Mulai dari desain natural hingga tradisional. Semua template tersedia untukmu.', button: 'Berikutnya' },
+    { eyebrow: 'Rangkai ceritamu', title: 'Satu Editor untuk Semua', body: 'Lengkapi isi undangan dan sesuaikan tampilannya tanpa berpindah langkah.', button: 'Berikutnya' },
     { eyebrow: 'Satu link untuk semua tamu', title: 'Bagikan dengan Elegan', body: 'Terbitkan undangan dengan link profesional yang mudah dikirim lewat WhatsApp.', button: 'Mulai Sekarang' },
   ]
   const slide = slides[onboarding]
@@ -508,7 +393,7 @@ function Header({ title, onBack, action }) {
   </header>
 }
 
-function Home({ drafts, activeDraft, username, onCreate, onOpen }) {
+function Home({ drafts, activeDraft, username, onCreate, onOpen, draftLimitMessage }) {
   const displayName = username || 'Kamu'
   return <section className="plain-screen home-screen">
     <header className="home-topbar">
@@ -519,7 +404,7 @@ function Home({ drafts, activeDraft, username, onCreate, onOpen }) {
       <div className="home-hero-copy">
         <span className="home-kicker"><span /> RUANG PRIBADIMU</span>
         <h1>Selamat datang,<br /><em>{displayName}.</em></h1>
-        <p>Rangkai undangan sesuai ceritamu. Lengkapi data acara, lalu pilih desain yang paling kamu suka.</p>
+        <p>Rangkai undangan sesuai ceritamu. Lengkapi isi dan sesuaikan tampilannya dalam satu editor.</p>
       </div>
     </section>
     <section className="home-flow" aria-label="Alur membuat undangan">
@@ -530,23 +415,24 @@ function Home({ drafts, activeDraft, username, onCreate, onOpen }) {
       <div className="home-flow-row">
         <div className="home-flow-step"><span className="home-flow-marker"><small>01</small><span className="home-flow-icon"><Icon name="file" size={25} /></span></span><strong>Isi data</strong><small>Lengkapi nama &amp; acara</small></div>
         <Icon className="home-flow-arrow" name="arrow" size={18} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>02</small><span className="home-flow-icon"><Icon name="grid" size={25} /></span></span><strong>Pilih desain</strong><small>Temukan gayamu</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>02</small><span className="home-flow-icon"><Icon name="grid" size={25} /></span></span><strong>Atur tampilan</strong><small>Sesuaikan gaya undangan</small></div>
         <Icon className="home-flow-arrow" name="arrow" size={18} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>03</small><span className="home-flow-icon"><Icon name="palette" size={25} /></span></span><strong>Atur warna</strong><small>Pilih nuansa</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>03</small><span className="home-flow-icon"><Icon name="palette" size={25} /></span></span><strong>Pratinjau</strong><small>Periksa sebelum dibagikan</small></div>
       </div>
       <Icon className="home-flow-turn" name="arrowDown" size={17} />
       <div className="home-flow-row home-flow-row-reverse">
-        <div className="home-flow-step"><span className="home-flow-marker"><small>06</small><span className="home-flow-icon"><Icon name="share" size={25} /></span></span><strong>Bagikan</strong><small>Kirim ke tamu</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>06</small><span className="home-flow-icon"><Icon name="share" size={25} /></span></span><strong>Selesai</strong><small>Undangan siap dibagikan</small></div>
         <Icon className="home-flow-arrow" name="arrowLeft" size={18} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>05</small><span className="home-flow-icon"><Icon name="lock" size={25} /></span></span><strong>Aktivasi</strong><small>Aktifkan undangan</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>05</small><span className="home-flow-icon"><Icon name="lock" size={25} /></span></span><strong>Bagikan</strong><small>Kirim ke tamu</small></div>
         <Icon className="home-flow-arrow" name="arrowLeft" size={18} />
-        <div className="home-flow-step"><span className="home-flow-marker"><small>04</small><span className="home-flow-icon"><Icon name="eye" size={25} /></span></span><strong>Pratinjau</strong><small>Cek hasilnya</small></div>
+        <div className="home-flow-step"><span className="home-flow-marker"><small>04</small><span className="home-flow-icon"><Icon name="eye" size={25} /></span></span><strong>Aktivasi</strong><small>Aktifkan undangan</small></div>
       </div>
     </section>
     <section className="home-drafts-panel">
       <span className="home-drafts-shimmer" aria-hidden="true" />
       <div className="section-heading draft-heading home-section-heading"><div><p className="eyebrow">Disimpan untuk nanti</p><h2>Rancanganmu</h2></div><span className="count-pill">{drafts.length}/2</span></div>
-      {activeDraft ? <div className="draft-card"><TemplateArt item={activeDraft.template} photo={activeDraft.photo} colorIndex={activeDraft.color || 0} className="draft-thumb" /><div className="draft-copy"><h3>{activeDraft.groom || 'Rancangan Undangan' } <span>&amp;</span> {activeDraft.bride || 'Pasangan'}</h3><p>{activeDraft.template?.title || 'Template pilihan'} · Tema {activeDraft.color + 1}</p><button className="outline-button" onClick={() => onOpen('preview')}>Lihat pratinjau</button></div></div> : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada rancangan</h3><p>Mulai dengan melengkapi data acara, lalu pilih desain undangan.</p><button className="primary-button" onClick={onCreate}>Buat rancangan pertama <Icon name="arrow" size={17} /></button></div>}
+      {draftLimitMessage && <p className="field-error" role="alert">{draftLimitMessage}</p>}
+      {activeDraft ? <div className="draft-card"><InvitationThumbnail draft={activeDraft} className="draft-thumb" /><div className="draft-copy"><h3>{activeDraft.groomNickname || activeDraft.groom || 'Rancangan Undangan'} <span>&amp;</span> {activeDraft.brideNickname || activeDraft.bride || 'Pasangan'}</h3><p>Editor undangan · tersimpan sebagai rancangan</p><button className="outline-button" onClick={() => onOpen('preview')}>Lihat pratinjau</button></div></div> : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada rancangan</h3><p>Mulai dengan melengkapi data acara dan tampilan undangan.</p><button className="primary-button" onClick={onCreate}>Buat rancangan pertama <Icon name="arrow" size={17} /></button></div>}
     </section>
   </section>
 }
@@ -556,8 +442,8 @@ function DraftsPage({ drafts, onBack, onCreate, onOpenDraft }) {
     <Header title="Undangan Saya" onBack={onBack} />
     <div className="screen-intro"><p className="eyebrow">Ruang karyamu</p><h1>Semua rancanganmu.</h1><p className="template-helper">Undangan yang kamu buat tersimpan di sini.</p></div>
     {drafts.length ? <div className="draft-list">{drafts.map((draft) => <button className="draft-list-item" type="button" key={draft.id} onClick={() => onOpenDraft(draft)}>
-      <TemplateArt item={draft.template} photo={draft.photo} colorIndex={draft.color || 0} className="draft-list-art" />
-      <span className="draft-list-copy"><strong>{draft.groom || 'Nama mempelai'} <i>&amp;</i> {draft.bride || 'Nama mempelai'}</strong><small>{draft.template?.title || 'Template pilihan'} · {draft.status}</small></span>
+      <InvitationThumbnail draft={draft} className="draft-list-art" />
+      <span className="draft-list-copy"><strong>{draft.groomNickname || draft.groom || 'Nama mempelai'} <i>&amp;</i> {draft.brideNickname || draft.bride || 'Nama mempelai'}</strong><small>Undangan Pernikahan · {draft.status}</small></span>
       <Icon name="chevron" size={18} />
     </button>)}</div> : <div className="empty-card home-empty-card"><div className="empty-icon"><Icon name="file" /></div><h3>Belum ada undangan</h3><p>Rancangan yang kamu simpan akan muncul di sini.</p><button className="primary-button" onClick={onCreate}>Mulai buat undangan <Icon name="arrow" size={17} /></button></div>}
   </section>
@@ -580,25 +466,19 @@ function ProfilePage({ username, draftCount, onBack, onLogout }) {
   </section>
 }
 
-function TemplateArt({ item, className = '', children, colorIndex = 0, photo = '', fontColor = '', animation = 'none' }) {
-  const art = item?.art || 'simple'
-  const colors = item?.colors || ['#f3eddf', '#263c30', '#b8935b']
-  const primaryIndex = colorIndex % colors.length
-  const style = {
-    '--art-primary': colors[primaryIndex],
-    '--art-secondary': colors[(primaryIndex + 1) % colors.length],
-    '--art-accent': colors[(primaryIndex + 2) % colors.length],
-    ...(fontColor ? { '--art-text-color': fontColor } : {}),
+function InvitationThumbnail({ draft, className = '' }) {
+  const palettes = {
+    forest: ['#f3eddf', '#263c30', '#b8935b'],
+    ivory: ['#f7f4ec', '#544b3e', '#a7895e'],
+    sage: ['#e8eee5', '#3e5a48', '#b08b58'],
+    rose: ['#f2e8e5', '#694d52', '#b78477'],
   }
-  const isPhotoTemplate = Boolean(item?.photoLayout)
-  const content = children || <div className="art-copy"><span>UNDANGAN PERNIKAHAN</span><strong>Nama <i>&amp;</i> Nama</strong><small>12 · 12 · 26</small></div>
-  return <div className={`template-art art-${art} animation-${animation} ${fontColor ? 'has-font-color' : ''} ${className}`} style={style}>
-    <span className="art-type">{themeLabels[item?.type] || item?.type || 'Klasik Editorial'}</span>
-    {isPhotoTemplate && <div className="photo-frame" aria-hidden="true">
-      {photo ? <img className="photo-image" src={photo} alt="" /> : <span className="photo-placeholder" />}
-    </div>}
-    {isPhotoTemplate ? <div className="photo-copy">{content}</div> : content}
-    <span className="art-privacy">{isPhotoTemplate ? photo ? 'Foto terpasang' : 'Unggah foto' : 'Tanpa foto'}</span>
+  const [paper, ink, accent] = palettes[draft?.palette] || palettes.forest
+  return <div className={`invitation-thumbnail ${className}`} style={{ '--thumb-paper': paper, '--thumb-ink': ink, '--thumb-accent': accent }}>
+    {draft?.photo && <img src={draft.photo} alt="" />}
+    <span>UNDANGAN PERNIKAHAN</span>
+    <strong>{draft?.groomNickname || draft?.groom || 'Nama'} <i>&amp;</i> {draft?.brideNickname || draft?.bride || 'Nama'}</strong>
+    <small>{draft?.eventDate || 'Atur tanggal acara'}</small>
   </div>
 }
 
@@ -867,9 +747,9 @@ function formatInvitationTime(value) {
   return `${value} WIB`
 }
 
-function Preview({ draft, onBack, onPublish }) {
+function Preview({ draft, onBack, onEdit, onPublish }) {
   const [liveOpen, setLiveOpen] = useState(false)
-  const couple = `${draft?.groom || 'Bagas'} & ${draft?.bride || 'Andini'}`
+  const couple = `${draft?.groomNickname || draft?.groom || 'Nama mempelai'} & ${draft?.brideNickname || draft?.bride || 'Nama mempelai'}`
   const eventSummary = [
     { label: 'Akad Nikah', date: draft?.eventDate, time: draft?.akadTime, venue: draft?.venue, address: draft?.address },
     ...(draft?.receptionDate || draft?.receptionTime || draft?.receptionVenue || draft?.receptionAddress
@@ -877,21 +757,13 @@ function Preview({ draft, onBack, onPublish }) {
       : []),
   ]
   return <section className="plain-screen">
-    <Header title="Pratinjau Undangan" onBack={onBack} action={<span className="step-count">4 dari 6</span>} />
+    <Header title="Pratinjau Undangan" onBack={onBack} action={<button className="text-button preview-edit-button" onClick={onEdit}>Edit data</button>} />
     <div className="preview-note"><Icon name="check" size={17} /><span>Pratinjau sampul undangan digital. Buka Live Preview untuk melihat seluruh halaman acara.</span></div>
-    <TemplateArt item={draft?.template} photo={draft?.photo} colorIndex={draft?.color || 0} fontColor={draft?.fontColor} className="invitation-preview">
-      <div className="preview-content">
-        <span className="eyebrow">SAVE THE DATE</span>
-        <h1>{couple}</h1>
-        <p>{formatInvitationDate(draft?.eventDate)}</p>
-        <div className="preview-divider" />
-        <p className="preview-venue">Akad Nikah<br />{draft?.venue || 'Gedung Pernikahan'}<br />{draft?.address && <>{draft.address}<br /></>}{draft?.city || 'Jakarta'}</p>
-      </div>
-    </TemplateArt>
+    <InvitationThumbnail draft={draft} className="invitation-preview" />
     <div className="preview-event-list">{eventSummary.map((event) => <div className="preview-event-card" key={event.label}><span className="eyebrow">{event.label}</span><strong>{formatInvitationDate(event.date) || 'Tanggal belum diatur'}{event.time && ` · ${formatInvitationTime(event.time)}`}</strong><small>{event.venue || 'Tempat acara'}{event.address ? ` · ${event.address}` : ''}</small></div>)}</div>
     {draft?.mapLink && <a className="map-preview-link" href={draft.mapLink} target="_blank" rel="noreferrer"><Icon name="pin" size={18} /><span><strong>Buka lokasi Akad</strong><small>{draft.address || draft.venue}{draft.city ? ` · ${draft.city}` : ''}</small></span><Icon name="arrow" size={18} /></a>}
     <button className="live-preview-button" onClick={() => setLiveOpen(true)}><span className="play-badge"><Icon name="play" size={14} /></span><span><strong>Lihat undangan seperti tamu</strong><small>Sampul, profil pasangan, jadwal, dan lokasi acara</small></span><Icon name="chevron" size={18} /></button>
-    <div className="preview-sections"><div className="mini-feature"><Icon name="clock" /><div><strong>Jadwal acara</strong><span>{eventSummary.length} rangkaian ditampilkan</span></div><Icon name="check" size={17} /></div><div className="mini-feature"><Icon name="camera" /><div><strong>{draft?.photo ? 'Foto sampul terpasang' : 'Desain undangan'}</strong><span>{draft?.template?.title || 'Template pilihan'}</span></div><Icon name="check" size={17} /></div></div>
+    <div className="preview-sections"><div className="mini-feature"><Icon name="clock" /><div><strong>Jadwal acara</strong><span>{eventSummary.length} rangkaian ditampilkan</span></div><Icon name="check" size={17} /></div><div className="mini-feature"><Icon name="camera" /><div><strong>{draft?.photo ? 'Foto sampul terpasang' : 'Sampul ilustrasi'}</strong><span>{draft?.musicName || 'Tanpa musik'}</span></div><Icon name="check" size={17} /></div></div>
     <div className="bottom-action"><button className="primary-button full" onClick={onPublish}>Lanjut aktivasi <Icon name="arrow" size={17} /></button></div>
     {liveOpen && <LivePreview couple={couple} draft={draft} onClose={() => setLiveOpen(false)} />}
   </section>
@@ -902,7 +774,7 @@ function LivePreview({ couple, draft, onClose }) {
   const [rsvp, setRsvp] = useState(false)
   return <div className="live-overlay">
     <div className="live-topbar"><div><span className="eyebrow light-text">Mode tamu</span><strong>Live Preview</strong></div><button className="icon-button light" onClick={onClose} aria-label="Tutup live preview"><Icon name="close" /></button></div>
-    <div className="live-scroll"><Suspense fallback={<div className="wedding-loading" role="status">Memuat pratinjau undangan…</div>}><WeddingInvitation couple={couple} draft={draft} opened={opened} onOpen={() => setOpened(true)} rsvp={rsvp} onRsvp={() => setRsvp(true)} /></Suspense></div>
+    <div className="live-scroll">{draft?.musicData && <audio className="live-music-player" controls src={draft.musicData} aria-label="Musik undangan">Browser tidak mendukung pemutar audio.</audio>}<Suspense fallback={<div className="wedding-loading" role="status">Memuat pratinjau undangan…</div>}><WeddingInvitation couple={couple} draft={draft} opened={opened} onOpen={() => setOpened(true)} rsvp={rsvp} onRsvp={() => setRsvp(true)} /></Suspense></div>
   </div>
 }
 
@@ -910,6 +782,6 @@ function Payment({ duration, setDuration, status, onBack, onSubmit }) { const pr
 
 function Share({ onBack }) { return <section className="plain-screen centered-screen"><p className="eyebrow">Langkah 6 dari 6</p><div className="success-mark"><Icon name="check" size={28} /></div><p className="eyebrow">Undangan aktif</p><h1>Siap dibagikan dengan elegan.</h1><p className="muted center-copy">Link undanganmu sudah siap. Bagikan secara personal melalui WhatsApp.</p><div className="link-card"><span>undanganku.id/andi-dan-sari</span><button className="icon-button small" aria-label="Salin link"><Icon name="share" size={17} /></button></div><button className="primary-button full">Bagikan ke WhatsApp <Icon name="share" size={17} /></button><button className="text-button" onClick={onBack}>Kembali ke beranda</button></section> }
 
-function BottomNav({ active, setActive, onLogout }) { return <nav className="bottom-nav"><button className={active === 'home' ? 'active' : ''} onClick={() => setActive('home')}><Icon name="home" /><span>Beranda</span></button><button className={active === 'templates' ? 'active' : ''} onClick={() => setActive('templates')}><Icon name="grid" /><span>Template</span></button><button className={active === 'drafts' ? 'active' : ''} onClick={() => setActive('drafts')}><Icon name="file" /><span>Undangan</span></button><button className={active === 'profile' ? 'active' : ''} onClick={() => setActive('profile')}><Icon name="user" /><span>Profil</span></button><button type="button" onClick={onLogout}><Icon name="logout" /><span>Logout</span></button></nav> }
+function BottomNav({ active, setActive, onLogout }) { return <nav className="bottom-nav"><button className={active === 'home' ? 'active' : ''} onClick={() => setActive('home')}><Icon name="home" /><span>Beranda</span></button><button className={active === 'drafts' ? 'active' : ''} onClick={() => setActive('drafts')}><Icon name="file" /><span>Undangan</span></button><button className={active === 'profile' ? 'active' : ''} onClick={() => setActive('profile')}><Icon name="user" /><span>Profil</span></button><button type="button" onClick={onLogout}><Icon name="logout" /><span>Logout</span></button></nav> }
 
 createRoot(document.getElementById('root')).render(<App />)
