@@ -39,9 +39,12 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
   const [mapStatus, setMapStatus] = useState('')
   const [mapError, setMapError] = useState('')
   const [uploadError, setUploadError] = useState('')
+  const [photoStatus, setPhotoStatus] = useState('')
   const [formError, setFormError] = useState('')
   const [saving, setSaving] = useState(false)
   const photoInput = useRef(null)
+  const guestNameInput = useRef(null)
+  const shareMessageInput = useRef(null)
   const audioInput = useRef(null)
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }))
   const palette = palettes.find((item) => item.id === form.palette) || palettes[0]
@@ -60,7 +63,7 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
     const date = form.eventDate
       ? new Date(`${form.eventDate}T00:00:00`).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
       : 'tanggal acara'
-    return `Kepada Yth. ${guestName || 'Nama tamu'}\n\nKami mengundang Anda untuk hadir di pernikahan kami, ${form.groomNickname || form.groom || 'Nama Pria'} & ${form.brideNickname || form.bride || 'Nama Wanita'}, pada ${date}. Tautan undangan belum aktif.\n\nTerima kasih.`
+    return `Kepada Yth. ${guestName?.trim() || 'Bapak/Ibu/Saudara/i'}\n\nKami mengundang Anda untuk hadir di pernikahan kami, ${form.brideNickname || form.bride || 'Nama Wanita'} & ${form.groomNickname || form.groom || 'Nama Pria'}, pada ${date}.\n\nTautan undangan tersedia setelah undangan diaktifkan.\n\nTerima kasih.`
   }
   const openShare = () => {
     setShareMessage(makeShareMessage())
@@ -68,9 +71,23 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
     setShareStatus('')
     setShareOpen(true)
   }
+  useEffect(() => {
+    if (!shareOpen) return
+    guestNameInput.current?.focus()
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setShareOpen(false)
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [shareOpen])
+  const selectShareMessage = () => {
+    shareMessageInput.current?.select()
+    setShareStatus('Teks dipilih. Salin pesan secara manual.')
+    setShareError('')
+  }
   const copyShareMessage = async () => {
     if (!navigator.clipboard?.writeText) {
-      setShareError('Browser ini tidak mendukung penyalinan teks. Pilih dan salin pesan secara manual.')
+      selectShareMessage()
       return
     }
     try {
@@ -79,7 +96,7 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
       setShareError('')
     } catch (error) {
       console.error('Gagal menyalin pesan undangan:', error)
-      setShareError('Pesan tidak dapat disalin. Pilih teks pesan lalu salin secara manual.')
+      selectShareMessage()
     }
   }
   const save = async () => {
@@ -146,26 +163,58 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
   const handlePhoto = (event) => {
     const file = event.target.files?.[0]
     event.target.value = ''
-    if (!file) return
+    if (!file) {
+      setPhotoStatus('')
+      return
+    }
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       setUploadError('Pilih foto berformat JPG, PNG, atau WebP.')
+      setPhotoStatus('')
       return
     }
     if (file.size > 5 * 1024 * 1024) {
       setUploadError('Ukuran foto maksimal 5 MB.')
+      setPhotoStatus('')
       return
     }
-    const reader = new FileReader()
-    reader.onload = () => {
-      if (typeof reader.result !== 'string') {
-        setUploadError('Foto tidak dapat dibaca. Coba pilih file lain.')
+    setUploadError('')
+    setPhotoStatus('Memproses foto…')
+    const photoUrl = URL.createObjectURL(file)
+    const image = new Image()
+    image.onload = () => {
+      const scale = Math.min(1, 1400 / Math.max(image.naturalWidth, image.naturalHeight))
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(image.naturalWidth * scale)
+      canvas.height = Math.round(image.naturalHeight * scale)
+      const context = canvas.getContext('2d')
+      if (!context) {
+        URL.revokeObjectURL(photoUrl)
+        setUploadError('Foto tidak dapat diproses di browser ini.')
+        setPhotoStatus('')
         return
       }
-      update('photo', reader.result)
-      setUploadError('')
+      context.fillStyle = '#fff'
+      context.fillRect(0, 0, canvas.width, canvas.height)
+      context.drawImage(image, 0, 0, canvas.width, canvas.height)
+      try {
+        update('photo', canvas.toDataURL('image/jpeg', 0.84))
+        update('photoZoom', 100)
+        update('photoX', 50)
+        update('photoY', 50)
+        setPhotoStatus('Foto terpasang. Atur posisi di bawah.')
+      } catch (error) {
+        console.error('Gagal memproses foto undangan:', error)
+        setUploadError('Foto tidak dapat diproses. Coba pilih file lain.')
+        setPhotoStatus('')
+      }
+      URL.revokeObjectURL(photoUrl)
     }
-    reader.onerror = () => setUploadError('Foto tidak dapat dibaca. Coba pilih file lain.')
-    reader.readAsDataURL(file)
+    image.onerror = () => {
+      URL.revokeObjectURL(photoUrl)
+      setUploadError('Foto tidak dapat dibaca. Coba pilih file lain.')
+      setPhotoStatus('')
+    }
+    image.src = photoUrl
   }
 
   const handleAudio = (event) => {
@@ -212,8 +261,8 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
 
   const couple = `${form.groomNickname || form.groom || 'Nama Pria'} & ${form.brideNickname || form.bride || 'Nama Wanita'}`
 
-  return <section className="studio-screen" style={{ '--invite-paper': palette.paper, '--invite-ink': palette.ink, '--invite-accent': palette.accent, '--invite-font-color': form.fontColor || palette.ink }}>
-    <input ref={photoInput} className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhoto} />
+  return <section className={`studio-screen ${panelOpen ? 'is-settings-open' : ''}`} style={{ '--invite-paper': palette.paper, '--invite-ink': palette.ink, '--invite-accent': palette.accent, '--invite-font-color': form.fontColor || palette.ink }}>
+    <input ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={handlePhoto} />
     <div className="studio-canvas">
       {previewOpen
         ? <button type="button" className="studio-preview-exit" onClick={() => setPreviewOpen(false)} aria-label="Tutup pratinjau"><Icon name="close" size={19} /></button>
@@ -223,7 +272,8 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
           couple={couple}
           draft={form}
           opened={previewOpen}
-          onMusicSettings={() => openSettings('music')}
+          onChoosePhoto={previewOpen ? undefined : pickPhoto}
+          onMusicSettings={previewOpen ? undefined : () => openSettings('music')}
         />
       </div>
     </div>
@@ -317,7 +367,13 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
         <section className="unified-section">
           <header><span>01</span><div><h2>Foto sampul</h2><p>Tambahkan foto atau gunakan ornamen tanpa foto.</p></div></header>
           <button type="button" className="unified-upload" onClick={() => photoInput.current?.click()}><Icon name="camera" size={20} /><span><strong>{form.photo ? 'Ganti foto pasangan' : 'Unggah foto pasangan'}</strong><small>JPG, PNG, WebP · maksimal 5 MB</small></span><Icon name="chevron" size={18} /></button>
-          {form.photo && <button className="unified-remove" type="button" onClick={() => update('photo', '')}>Hapus foto</button>}
+          {photoStatus && <p className="photo-upload-status" role="status">{photoStatus}</p>}
+          {form.photo && <>
+            <label className="photo-adjustment">Perbesar<input type="range" min="100" max="250" value={form.photoZoom || 100} onChange={(event) => update('photoZoom', Number(event.target.value))} /><output>{form.photoZoom || 100}%</output></label>
+            <label className="photo-adjustment">Geser kiri–kanan<input type="range" min="0" max="100" value={form.photoX ?? 50} onChange={(event) => update('photoX', Number(event.target.value))} /></label>
+            <label className="photo-adjustment">Geser atas–bawah<input type="range" min="0" max="100" value={form.photoY ?? 50} onChange={(event) => update('photoY', Number(event.target.value))} /></label>
+            <button className="unified-remove" type="button" onClick={() => { update('photo', ''); update('photoZoom', 100); update('photoX', 50); update('photoY', 50); setPhotoStatus('Foto dihapus.') }}>Hapus foto</button>
+          </>}
           {uploadError && <p className="field-error" role="alert">{uploadError}</p>}
         </section>
         <section className="unified-section">
@@ -350,7 +406,7 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
             <label><input type="radio" name="music" checked={(form.music || 'none') === 'none'} onChange={() => { update('music', 'none'); update('musicData', ''); update('musicName', '') }} /><span><strong>Tanpa musik</strong><small>Undangan dibuka tanpa suara.</small></span></label>
             <label><input type="radio" name="music" checked={form.music === 'custom'} onChange={() => audioInput.current?.click()} /><span><strong>Lagu sendiri</strong><small>{form.musicName || 'Pilih file musik dari perangkat.'}</small></span></label>
           </div>
-          <input ref={audioInput} className="visually-hidden" type="file" accept="audio/*" onChange={handleAudio} />
+          <input ref={audioInput} type="file" accept="audio/*" hidden onChange={handleAudio} />
           {form.musicData && <audio className="unified-audio-player" controls src={form.musicData}>Browser tidak mendukung pemutar audio.</audio>}
           {uploadError && <p className="field-error" role="alert">{uploadError}</p>}
           <p className="unified-note">File musik maksimal 10 MB dan tersimpan bersama rancangan pada sesi ini.</p>
@@ -367,13 +423,13 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
         <h2 id="studio-share-title">Bagikan undangan</h2>
         <label className="studio-share-field">
           <span>Nama tamu (muncul di halaman awal)</span>
-          <input value={form.guestName || ''} onChange={(event) => { update('guestName', event.target.value); setShareMessage(makeShareMessage(event.target.value)) }} placeholder="Contoh: Bapak Andi dan keluarga" />
+          <input ref={guestNameInput} maxLength={40} value={form.guestName || ''} onChange={(event) => { update('guestName', event.target.value); setShareMessage(makeShareMessage(event.target.value)) }} placeholder="Contoh: Bapak Andi dan keluarga" />
         </label>
         <label className="studio-share-field">
           <span>Pesan</span>
-          <textarea value={shareMessage} readOnly rows={6} />
+          <textarea ref={shareMessageInput} value={shareMessage} readOnly rows={6} />
         </label>
-        <p className="studio-share-note">Ini tampilan contoh. Tautannya belum aktif.</p>
+        <p className="studio-share-note">Simpan rancangan, lalu aktifkan undangan untuk mendapatkan tautan publik.</p>
         {shareError && <p className="field-error" role="alert">{shareError}</p>}
         {shareStatus && <p className="studio-share-status" role="status">{shareStatus}</p>}
         <div className="studio-share-actions">

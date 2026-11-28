@@ -10,7 +10,7 @@ function makeMapsSearchLink(location, city) {
   return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : ''
 }
 
-export default function WeddingInvitation({ couple, draft, opened, onMusicSettings, rsvp, onRsvp }) {
+export default function WeddingInvitation({ couple, draft, opened, onMusicSettings, onChoosePhoto, rsvp, onRsvp }) {
   const musicPlayer = useRef(null)
   const sectionTrigger = useRef(null)
   const sectionBackButton = useRef(null)
@@ -139,8 +139,28 @@ export default function WeddingInvitation({ couple, draft, opened, onMusicSettin
       <span>UNDANGAN<br />PERNIKAHAN</span>
       <button type="button" className={`wedding-cover-music ${draft?.musicData ? 'has-track' : ''}`} onClick={toggleMusic} aria-label={musicPlaying ? 'Jeda musik' : draft?.musicName ? `Putar musik: ${draft.musicName}` : 'Atur musik undangan'}>{musicPlaying ? 'Ⅱ' : '♪'}</button>
     </header>
-    <div className={`wedding-portrait ${draft?.layout === 'circle' ? 'portrait-circle' : ''} ${draft?.layout === 'full' ? 'layout-full' : ''} ${draft?.photo ? 'has-photo' : ''}`}>
-      {draft?.photo ? <img src={draft.photo} alt="Foto pasangan" /> : <div className="wedding-couple-illustration" role="img" aria-label="Ilustrasi pasangan pengantin">
+    <div
+      className={`wedding-portrait ${draft?.layout === 'circle' ? 'portrait-circle' : ''} ${draft?.layout === 'full' ? 'layout-full' : ''} ${draft?.photo ? 'has-photo' : ''} ${onChoosePhoto ? 'is-editable' : ''}`}
+      onClick={onChoosePhoto}
+      onKeyDown={onChoosePhoto ? (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onChoosePhoto()
+        }
+      } : undefined}
+      role={onChoosePhoto ? 'button' : undefined}
+      tabIndex={onChoosePhoto ? 0 : undefined}
+      aria-label={onChoosePhoto ? 'Pilih foto pasangan' : undefined}
+    >
+      {draft?.photo ? <img
+        src={draft.photo}
+        alt="Foto pasangan"
+        style={{
+          objectPosition: `${draft.photoX ?? 50}% ${draft.photoY ?? 50}%`,
+          transform: `scale(${(draft.photoZoom || 100) / 100})`,
+          transformOrigin: `${draft.photoX ?? 50}% ${draft.photoY ?? 50}%`,
+        }}
+      /> : <div className="wedding-couple-illustration" role="img" aria-label="Ilustrasi pasangan pengantin">
         <span className="portrait-caption">HARI BAHAGIA KAMI</span>
         <i className="portrait-sun" />
         <i className="portrait-person portrait-person-one" />

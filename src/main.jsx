@@ -63,6 +63,7 @@ const emptyForm = {
   venue: '', city: '', address: '', mapLink: '', latitude: null, longitude: null,
   receptionDate: '', receptionTime: '', receptionVenue: '', receptionAddress: '',
   poetic: '', prayer: '', guestName: '', guestMessage: '', photo: '',
+  photoZoom: 100, photoX: 50, photoY: 50,
   palette: 'forest', fontColor: '#263c30', fontStyle: 'anggun', buttonStyle: 'capsule',
   layout: 'gate', menuOrder: ['acara', 'keluarga', 'peta', 'doa'],
   music: 'none', musicName: '', musicData: '',
