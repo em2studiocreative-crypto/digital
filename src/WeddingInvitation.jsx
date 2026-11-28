@@ -134,7 +134,7 @@ export default function WeddingInvitation({ couple, draft, opened, onMusicSettin
   </section>
 
   const designClasses = `layout-${draft?.layout || 'gate'} font-${draft?.fontStyle || 'anggun'} buttons-${draft?.buttonStyle || 'capsule'} ${draft?.fontColor ? 'has-font-color' : ''}`
-  if (!opened) return <section className={`wedding-cover ${designClasses}`} style={style}>
+  return <section className={`wedding-cover ${designClasses}`} style={style}>
     <header className="wedding-cover-heading">
       <span>UNDANGAN<br />PERNIKAHAN</span>
       <button type="button" className={`wedding-cover-music ${draft?.musicData ? 'has-track' : ''}`} onClick={toggleMusic} aria-label={musicPlaying ? 'Jeda musik' : draft?.musicName ? `Putar musik: ${draft.musicName}` : 'Atur musik undangan'}>{musicPlaying ? 'Ⅱ' : '♪'}</button>
@@ -162,53 +162,4 @@ export default function WeddingInvitation({ couple, draft, opened, onMusicSettin
     {draft?.musicData && <audio ref={musicPlayer} src={draft.musicData} loop preload="none" />}
     {sectionSheet}
   </section>
-
-  return <article className={`wedding-page ${designClasses}`} style={style}>
-    <section className="wedding-hero">
-      {draft?.photo ? <img src={draft.photo} alt="Foto pasangan" /> : <div className="wedding-cover-art" aria-hidden="true" />}
-      <div className="wedding-hero-copy"><span>THE WEDDING OF</span><h1>{couple}</h1><p>{formatDate(draft?.eventDate)}</p></div>
-    </section>
-    <nav className="wedding-menu" aria-label="Navigasi undangan">
-      {menu.map((item) => <a key={item} href={`#wedding-${item}`}>{menuLabels[item] || item}</a>)}
-    </nav>
-    <section className="wedding-welcome">
-      <span className="wedding-flourish" aria-hidden="true">✦</span>
-      <p className="wedding-kicker">DENGAN PENUH RASA SYUKUR</p>
-      <h2>Hari istimewa kami</h2>
-      <p>{draft?.poetic || 'Dengan penuh rasa syukur, kami mengundang keluarga serta sahabat untuk hadir dan berbagi kebahagiaan bersama kami.'}</p>
-      {(draft?.guestName || draft?.guestMessage) && <div className="wedding-guest-message">{draft.guestName && <strong>Kepada {draft.guestName}</strong>}{draft.guestMessage && <p>{draft.guestMessage}</p>}</div>}
-    </section>
-    <section id="wedding-keluarga" className="wedding-couple-section">
-      <p className="wedding-kicker">DUA HATI, SATU CERITA</p>
-      <div className="wedding-couple-names">
-        <div><h2>{draft?.groom || 'Mempelai pria'}</h2>{draft?.groomParents && <p>Putra dari<br />{draft.groomParents}</p>}</div>
-        <span>&amp;</span>
-        <div><h2>{draft?.bride || 'Mempelai wanita'}</h2>{draft?.brideParents && <p>Putri dari<br />{draft.brideParents}</p>}</div>
-      </div>
-    </section>
-    <section id="wedding-acara" className="wedding-events">
-      <p className="wedding-kicker">CATAT TANGGALNYA</p>
-      <h2>Rangkaian acara</h2>
-      <div className="wedding-event-list">{events.map((event) => <section className="wedding-event-card" key={event.title}>
-        <span className="wedding-event-mark">✦</span>
-        <h3>{event.title}</h3>
-        <p className="wedding-event-date">{formatDate(event.date) || 'Tanggal menyusul'}{event.time && ` · ${event.time} WIB`}</p>
-        <p className="wedding-event-venue">{event.venue || 'Nama tempat'}{event.address && <><br />{event.address}</>}{draft?.city && <><br />{draft.city}</>}</p>
-        {event.mapLink && <a className="wedding-map-link" href={event.mapLink} target="_blank" rel="noreferrer"><span aria-hidden="true">⌖</span> Buka peta</a>}
-      </section>)}</div>
-    </section>
-    <section id="wedding-doa" className="wedding-closing">
-      <p>Merupakan kebahagiaan bagi kami apabila Anda berkenan hadir dan memberikan doa restu.</p>
-      {draft?.prayer && <p className="wedding-prayer">{draft.prayer}</p>}
-      <h2>{couple}</h2>
-      <span className="wedding-kicker">SAMPAI JUMPA DI HARI BAHAGIA</span>
-    </section>
-    <section id="wedding-peta" className="wedding-map-section">
-      <p className="wedding-kicker">LOKASI ACARA</p>
-      <h2>Temukan tempatnya</h2>
-      {events.map((event) => event.mapLink && <a key={event.title} className="wedding-map-link" href={event.mapLink} target="_blank" rel="noreferrer"><span aria-hidden="true">⌖</span> {event.title} · Buka peta</a>)}
-    </section>
-    {onRsvp && <section className="wedding-rsvp"><p className="wedding-kicker">KONFIRMASI KEHADIRAN</p><h2>Bisakah kami menantikan kehadiranmu?</h2>{rsvp ? <p className="rsvp-success">Terima kasih, konfirmasi tersimpan.</p> : <button className="primary-button full" onClick={onRsvp}>Konfirmasi kehadiran</button>}</section>}
-    {sectionSheet}
-  </article>
 }

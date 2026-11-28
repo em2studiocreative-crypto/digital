@@ -46,6 +46,16 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }))
   const palette = palettes.find((item) => item.id === form.palette) || palettes[0]
   const menuOrder = orderedMenu(form.menuOrder)
+
+  const openSettings = (panel) => {
+    setActivePanel(panel)
+    setPanelOpen(true)
+  }
+  const pickPhoto = () => {
+    setActivePanel('appearance')
+    setPanelOpen(true)
+    photoInput.current?.click()
+  }
   const makeShareMessage = (guestName = form.guestName) => {
     const date = form.eventDate
       ? new Date(`${form.eventDate}T00:00:00`).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
@@ -203,22 +213,24 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
   const couple = `${form.groomNickname || form.groom || 'Nama Pria'} & ${form.brideNickname || form.bride || 'Nama Wanita'}`
 
   return <section className="studio-screen" style={{ '--invite-paper': palette.paper, '--invite-ink': palette.ink, '--invite-accent': palette.accent, '--invite-font-color': form.fontColor || palette.ink }}>
+    <input ref={photoInput} className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhoto} />
     <div className="studio-canvas">
-      <button type="button" className="studio-back-button" onClick={onBack} disabled={saving} aria-label="Kembali ke beranda"><Icon name="back" size={19} /></button>
-      {previewOpen && <header className="live-topbar studio-preview-topbar"><span className="live-mode-label">Pratinjau tamu</span><button className="icon-button" onClick={() => setPreviewOpen(false)} aria-label="Tutup pratinjau"><Icon name="close" /></button></header>}
-      <div className="live-scroll studio-live-scroll">
+      {previewOpen
+        ? <button type="button" className="studio-preview-exit" onClick={() => setPreviewOpen(false)} aria-label="Tutup pratinjau"><Icon name="close" size={19} /></button>
+        : <button type="button" className="studio-back-button" onClick={onBack} disabled={saving} aria-label="Kembali ke beranda"><Icon name="back" size={19} /></button>}
+      <div className={`live-scroll studio-live-scroll ${previewOpen ? 'is-full-preview' : ''}`}>
         <WeddingInvitation
           couple={couple}
           draft={form}
           opened={previewOpen}
-          onMusicSettings={() => { setActivePanel('music'); setPanelOpen(true) }}
+          onMusicSettings={() => openSettings('music')}
         />
       </div>
     </div>
 
     {!previewOpen && <nav className="live-toolbar" aria-label="Alat undangan">
-      <button type="button" onClick={() => { setActivePanel('appearance'); setPanelOpen(true) }}><Icon name="camera" size={18} /><span>Foto</span></button>
-      <button type="button" onClick={() => { setActivePanel('appearance'); setPanelOpen(true) }}><Icon name="palette" size={18} /><span>Atur tema</span></button>
+      <button type="button" onClick={pickPhoto}><Icon name="camera" size={18} /><span>Foto</span></button>
+      <button type="button" onClick={() => openSettings('appearance')}><Icon name="palette" size={18} /><span>Atur tema</span></button>
       <button type="button" onClick={() => setPreviewOpen(true)}><Icon name="eye" size={18} /><span>Pratinjau</span></button>
       <button type="button" className="live-share-button" onClick={openShare}><Icon name="share" size={18} /><span>Bagikan</span></button>
     </nav>}
@@ -304,7 +316,6 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
       {activePanel === 'appearance' && <div className="unified-panel" role="tabpanel">
         <section className="unified-section">
           <header><span>01</span><div><h2>Foto sampul</h2><p>Tambahkan foto atau gunakan ornamen tanpa foto.</p></div></header>
-          <input ref={photoInput} className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhoto} />
           <button type="button" className="unified-upload" onClick={() => photoInput.current?.click()}><Icon name="camera" size={20} /><span><strong>{form.photo ? 'Ganti foto pasangan' : 'Unggah foto pasangan'}</strong><small>JPG, PNG, WebP · maksimal 5 MB</small></span><Icon name="chevron" size={18} /></button>
           {form.photo && <button className="unified-remove" type="button" onClick={() => update('photo', '')}>Hapus foto</button>}
           {uploadError && <p className="field-error" role="alert">{uploadError}</p>}
@@ -360,7 +371,7 @@ export default function InvitationEditor({ form, setForm, onBack, onSave, initia
         </label>
         <label className="studio-share-field">
           <span>Pesan</span>
-          <textarea value={shareMessage} onChange={(event) => setShareMessage(event.target.value)} rows={6} />
+          <textarea value={shareMessage} readOnly rows={6} />
         </label>
         <p className="studio-share-note">Ini tampilan contoh. Tautannya belum aktif.</p>
         {shareError && <p className="field-error" role="alert">{shareError}</p>}
