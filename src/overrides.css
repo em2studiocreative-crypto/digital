@@ -62,7 +62,14 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 20px;
+  min-height: 100px;
+  margin: -20px -17px 20px;
+  padding: 19px 17px 17px;
+  border-radius: 17px 17px 12px 12px;
+  background:
+    radial-gradient(ellipse at 100% 0, rgba(228, 199, 141, .18), transparent 44%),
+    linear-gradient(125deg, #314a39, #263c30 68%, #1c2d23);
+  color: #fffdf8;
 }
 
 .editor-section-icon {
@@ -71,22 +78,22 @@
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(184, 147, 91, .28);
+  border: 1px solid rgba(228, 199, 141, .42);
   border-radius: 12px;
-  background: #f2ecdc;
-  color: #8b7044;
+  background: rgba(228, 199, 141, .14);
+  color: #e4c78d;
 }
 
 .editor-section-heading .eyebrow {
   margin: 0 0 4px;
-  color: #9a8054;
+  color: #e4c78d;
   font-size: 9px;
   letter-spacing: 1.35px;
 }
 
 .editor-section-heading h2 {
   margin: 0 0 4px;
-  color: var(--forest);
+  color: #fffdf8;
   font-family: 'Playfair Display', serif;
   font-size: 23px;
   line-height: 1.15;
@@ -95,7 +102,7 @@
 .editor-section-heading p:last-child {
   max-width: 290px;
   margin: 0;
-  color: var(--muted);
+  color: rgba(255, 253, 248, .76);
   font-size: 11px;
   line-height: 1.5;
 }
@@ -173,6 +180,29 @@
   border-color: #b8935b;
   background: #fff;
   box-shadow: 0 0 0 3px rgba(184, 147, 91, .13);
+}
+
+.editor-screen .editor-field.has-value > .text-input,
+.editor-screen .editor-field.has-value > .editor-input-wrap {
+  border-color: rgba(63, 105, 75, .32);
+  background: rgba(80, 132, 91, .12);
+}
+
+.editor-screen .editor-field.has-value > .text-input:focus,
+.editor-screen .editor-field.has-value > .editor-input-wrap:focus-within {
+  border-color: #6f9877;
+  background: rgba(80, 132, 91, .17);
+  box-shadow: 0 0 0 3px rgba(80, 132, 91, .12);
+}
+
+.editor-screen .editor-field.has-value .date-input-wrap .text-input,
+.editor-screen .editor-field.has-value .date-input-wrap .text-input:focus {
+  background: transparent;
+  box-shadow: none;
+}
+
+.editor-screen .editor-field.has-value > .editor-input-wrap {
+  box-shadow: none;
 }
 
 .date-input-wrap .text-input {
