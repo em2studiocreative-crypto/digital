@@ -52,10 +52,30 @@ const Icon = ({ name, size = 20, stroke = 'currentColor', className = '' }) => {
 
 const templates = [
   { id: 1, title: 'Sela', type: 'Simple', art: 'simple', colors: ['#f3eddf', '#263c30', '#b8935b'] },
+  { id: 6, title: 'Akad Pagi', type: 'Simple', art: 'simple', colors: ['#f5f0e5', '#53675b', '#c4a878'] },
+  { id: 7, title: 'Putih Janji', type: 'Simple', art: 'simple', colors: ['#f7f5f0', '#52616b', '#b8a78b'] },
+  { id: 8, title: 'Ruang Rindu', type: 'Simple', art: 'simple', colors: ['#eadfd2', '#5a463e', '#b77b64'] },
+  { id: 9, title: 'Senandika', type: 'Simple', art: 'simple', colors: ['#e9e5d8', '#38483e', '#9c9875'] },
   { id: 2, title: 'Rona Pesta', type: 'Full Color', art: 'colorful', colors: ['#f2b84b', '#e87563', '#64549b'] },
+  { id: 10, title: 'Pesta Ceria', type: 'Full Color', art: 'colorful', colors: ['#f2a65a', '#df5474', '#694f9b'] },
+  { id: 11, title: 'Senja Meriah', type: 'Full Color', art: 'colorful', colors: ['#e7a64e', '#bf5360', '#3f7180'] },
+  { id: 12, title: 'Rona Bahagia', type: 'Full Color', art: 'colorful', colors: ['#f1bd62', '#ed7c54', '#536ca1'] },
+  { id: 13, title: 'Kisah Warna', type: 'Full Color', art: 'colorful', colors: ['#d98d75', '#76569a', '#e3b74e'] },
   { id: 3, title: 'Rimba Senja', type: 'Natural', art: 'natural', colors: ['#c7d0b4', '#d9c096', '#6e7b68'] },
+  { id: 14, title: 'Pagi di Ubud', type: 'Natural', art: 'natural', colors: ['#d6ddc8', '#a8ad82', '#687b68'] },
+  { id: 15, title: 'Embun Lembut', type: 'Natural', art: 'natural', colors: ['#d7e2db', '#8fa99b', '#65766a'] },
+  { id: 16, title: 'Bumi Teduh', type: 'Natural', art: 'natural', colors: ['#d7c8aa', '#a88962', '#65705b'] },
+  { id: 17, title: 'Lembah Asri', type: 'Natural', art: 'natural', colors: ['#c4d2c2', '#b2a47e', '#58705c'] },
   { id: 4, title: 'Purnama Jawa', type: 'Tradisional', art: 'traditional', colors: ['#a88a62', '#44372c', '#ede0c2'] },
+  { id: 18, title: 'Batik Laras', type: 'Tradisional', art: 'traditional', colors: ['#b58961', '#49372f', '#ead8b8'] },
+  { id: 19, title: 'Sekar Jagad', type: 'Tradisional', art: 'traditional', colors: ['#a86d55', '#432f2b', '#e6c99c'] },
+  { id: 20, title: 'Adat Pusaka', type: 'Tradisional', art: 'traditional', colors: ['#c19a67', '#514033', '#f0dfbd'] },
+  { id: 21, title: 'Citra Mataram', type: 'Tradisional', art: 'traditional', colors: ['#947456', '#382e29', '#dbc69f'] },
   { id: 5, title: 'Taman Hati', type: 'Floral', art: 'floral', colors: ['#e7c1bd', '#f4ede5', '#8a6c78'] },
+  { id: 22, title: 'Mawar Pagi', type: 'Floral', art: 'floral', colors: ['#edc9c1', '#f5eee5', '#9c6970'] },
+  { id: 23, title: 'Bunga Senja', type: 'Floral', art: 'floral', colors: ['#d9b3b0', '#f4e8d9', '#876578'] },
+  { id: 24, title: 'Kebun Cinta', type: 'Floral', art: 'floral', colors: ['#e8cbb1', '#f8f0df', '#8a8b68'] },
+  { id: 25, title: 'Kelopak Kasih', type: 'Floral', art: 'floral', colors: ['#dfbfc9', '#f7ede8', '#986f83'] },
 ]
 
 function App() {
